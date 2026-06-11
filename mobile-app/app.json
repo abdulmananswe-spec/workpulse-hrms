@@ -1,0 +1,92 @@
+{
+  "expo": {
+    "name": "WorkPulse HRMS",
+    "slug": "workpulse-hrms",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "employee-attendance",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "bundleIdentifier": "com.workpulse.hrms",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "WorkPulse HRMS uses your location to verify check-in and check-out at your assigned branch.",
+        "NSPhotoLibraryUsageDescription": "WorkPulse HRMS accesses photos to upload your profile avatar."
+      }
+    },
+    "android": {
+      "package": "com.workpulse.hrms",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "READ_MEDIA_IMAGES",
+        "READ_EXTERNAL_STORAGE"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-font",
+      "expo-secure-store",
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow WorkPulse HRMS to use your location for check-in and check-out verification."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow WorkPulse HRMS to access your photos to upload a profile avatar."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "minSdkVersion": 24,
+            "buildToolsVersion": "35.0.0"
+          }
+        }
+      ],
+      "./plugins/withAndroidLocalSigning.js"
+    ],
+    "experiments": {
+      "tsconfigPaths": true
+    },
+    "extra": {
+      "developer": "Abdul Manan",
+      "copyright": "© 2026 WorkPulse HRMS. All Rights Reserved.",
+      "router": {},
+      "eas": {
+        "projectId": "c7be4101-a9a6-4fab-8c1c-2eeafbee8209"
+      }
+    },
+    "owner": "itzmanan",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/c7be4101-a9a6-4fab-8c1c-2eeafbee8209"
+    }
+  }
+}
