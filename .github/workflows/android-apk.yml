@@ -5,22 +5,19 @@ on:
     branches: [main, master]
     paths:
       - "mobile-app/**"
-      - "package.json"
-      - "package-lock.json"
-      - "app.json"
       - ".github/workflows/android-apk.yml"
   pull_request:
     paths:
       - "mobile-app/**"
-      - "package.json"
-      - "package-lock.json"
-      - "app.json"
       - ".github/workflows/android-apk.yml"
   workflow_dispatch:
 
 concurrency:
   group: android-apk-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  EXPO_APP_DIR: mobile-app
 
 jobs:
   build-debug-apk:
@@ -35,29 +32,45 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-      - name: Resolve Expo project directory
-        id: expo
+      - name: Verify Expo project files
         run: |
-          if [ -f mobile-app/package.json ] && grep -q '"expo"' mobile-app/package.json; then
-            echo "dir=mobile-app" >> "$GITHUB_OUTPUT"
-            echo "Using monorepo path: mobile-app/"
-          elif [ -f package.json ] && grep -q '"expo"' package.json; then
-            echo "dir=." >> "$GITHUB_OUTPUT"
-            echo "Using repository root as Expo project"
-          else
-            echo "::error::No Expo package.json found."
-            echo "Expected mobile-app/package.json (monorepo) or package.json at repo root."
+          set -euo pipefail
+
+          # mobile-app is registered as a git submodule in this repo but .gitmodules
+          # is missing, so a plain checkout leaves the folder empty on GitHub Actions.
+          if [ ! -f "${EXPO_APP_DIR}/package.json" ]; then
+            if git ls-tree HEAD "${EXPO_APP_DIR}" 2>/dev/null | grep -q "160000 commit"; then
+              echo "Detected git submodule pointer for ${EXPO_APP_DIR}; attempting init..."
+              git submodule update --init --recursive "${EXPO_APP_DIR}" || true
+            fi
+          fi
+
+          if [ ! -f "${EXPO_APP_DIR}/package.json" ] || [ ! -f "${EXPO_APP_DIR}/app.json" ]; then
+            echo "::error::Expo project not found at ${EXPO_APP_DIR}/"
             echo ""
-            echo "Repository contents:"
+            echo "This monorepo expects the Expo app at: ${EXPO_APP_DIR}/package.json"
+            echo "Checkout left an empty or missing folder — usually a broken git submodule."
+            echo ""
+            echo "Fix locally, then push:"
+            echo "  git rm --cached ${EXPO_APP_DIR}"
+            echo "  git add ${EXPO_APP_DIR}/"
+            echo "  git commit -m \"Track mobile-app as regular directory\""
+            echo "  git push"
+            echo ""
+            echo "Repository root listing:"
             ls -la
-            if [ -d mobile-app ]; then
+            if [ -d "${EXPO_APP_DIR}" ]; then
               echo ""
-              echo "mobile-app/ contents:"
-              ls -la mobile-app
+              echo "${EXPO_APP_DIR}/ listing:"
+              ls -la "${EXPO_APP_DIR}"
             fi
             exit 1
           fi
+
+          echo "Expo project verified at ${EXPO_APP_DIR}/"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -84,17 +97,17 @@ jobs:
             "build-tools;35.0.0"
 
       - name: Install npm dependencies
-        working-directory: ${{ steps.expo.outputs.dir }}
+        working-directory: mobile-app
         run: |
           if [ -f package-lock.json ]; then
             npm ci
           else
-            echo "::warning::package-lock.json not found — falling back to npm install"
+            echo "::warning::mobile-app/package-lock.json not found — falling back to npm install"
             npm install
           fi
 
       - name: Write .env for Expo bundle
-        working-directory: ${{ steps.expo.outputs.dir }}
+        working-directory: mobile-app
         run: |
           {
             echo "EXPO_PUBLIC_SUPABASE_URL=${EXPO_PUBLIC_SUPABASE_URL:-https://placeholder.supabase.co}"
@@ -102,7 +115,7 @@ jobs:
           } > .env
 
       - name: Expo prebuild (Android)
-        working-directory: ${{ steps.expo.outputs.dir }}
+        working-directory: mobile-app
         run: npm exec expo prebuild -- --platform android --no-install
 
       - name: Cache Gradle
@@ -111,39 +124,30 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ steps.expo.outputs.dir }}-${{ hashFiles(format('{0}/android/gradle/wrapper/gradle-wrapper.properties', steps.expo.outputs.dir)) }}
+          key: ${{ runner.os }}-gradle-mobile-${{ hashFiles('mobile-app/android/gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-${{ steps.expo.outputs.dir }}-
+            ${{ runner.os }}-gradle-mobile-
             ${{ runner.os }}-gradle-
 
       - name: Gradle assembleDebug
-        working-directory: ${{ steps.expo.outputs.dir }}/android
+        working-directory: mobile-app/android
         run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon --stacktrace -PreactNativeArchitectures=arm64-v8a
-
-      - name: Set APK artifact path
-        id: apk
-        run: |
-          if [ "${{ steps.expo.outputs.dir }}" = "." ]; then
-            echo "path=android/app/build/outputs/apk/debug/app-debug.apk" >> "$GITHUB_OUTPUT"
-          else
-            echo "path=${{ steps.expo.outputs.dir }}/android/app/build/outputs/apk/debug/app-debug.apk" >> "$GITHUB_OUTPUT"
-          fi
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: workpulse-hrms-debug-apk
-          path: ${{ steps.apk.outputs.path }}
+          path: mobile-app/android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
           if-no-files-found: error
 
       - name: Build summary
-        working-directory: ${{ steps.expo.outputs.dir }}
+        working-directory: mobile-app
         run: |
           APK="android/app/build/outputs/apk/debug/app-debug.apk"
           echo "## WorkPulse HRMS Debug APK" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Expo project:** \`${{ steps.expo.outputs.dir }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Expo project:** \`mobile-app/\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Package:** \`com.workpulse.hrms\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Commit:** \`${GITHUB_SHA::7}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- **APK size:** $(du -h "$APK" | cut -f1)" >> "$GITHUB_STEP_SUMMARY"
