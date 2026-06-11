@@ -1,0 +1,11 @@
+{
+  "name": "database",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset",
+    "db:lint": "supabase db lint",
+    "types:generate": "supabase gen types typescript --linked > ../admin-panel/src/types/database.ts && supabase gen types typescript --linked > ../mobile-app/src/types/database.ts"
+  }
+}

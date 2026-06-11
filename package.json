@@ -1,0 +1,20 @@
+{
+  "name": "workpulse-hrms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WorkPulse HRMS — employee attendance and HR management platform. Developed by Abdul Manan.",
+  "author": "Abdul Manan",
+  "license": "MIT",
+  "scripts": {
+    "mobile": "npm run start --prefix mobile-app",
+    "mobile:android": "npm run android --prefix mobile-app",
+    "admin": "npm run dev --prefix admin-panel",
+    "admin:build": "npm run build --prefix admin-panel",
+    "typecheck": "npm run typecheck --prefix mobile-app && npm run typecheck --prefix admin-panel",
+    "verify:supabase": "node scripts/verify-supabase.mjs",
+    "verify:auth": "node scripts/verify-auth.mjs",
+    "db:push": "npm run db:push --prefix database",
+    "db:reset": "npm run db:reset --prefix database",
+    "lint": "npm run lint --prefix admin-panel"
+  }
+}

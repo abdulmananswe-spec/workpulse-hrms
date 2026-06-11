@@ -1,0 +1,2 @@
+-- Development seed data is maintained in supabase/seed.sql
+-- Run: cd database && supabase db reset
