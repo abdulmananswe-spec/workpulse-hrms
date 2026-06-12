@@ -10,6 +10,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { TableScroll } from "@/components/ui/table-scroll";
 import {
   createEmployeeAction,
   deleteEmployeeAction,
@@ -262,8 +263,7 @@ export function EmployeeManagement({
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        <div className="overflow-x-auto">
+      <TableScroll className="rounded-2xl border border-border bg-card">
           <table className="min-w-full divide-y divide-slate-200 text-sm">
             <thead className="bg-slate-50">
               <tr>
@@ -362,8 +362,7 @@ export function EmployeeManagement({
               )}
             </tbody>
           </table>
-        </div>
-      </div>
+      </TableScroll>
 
       <Dialog
         open={formOpen}

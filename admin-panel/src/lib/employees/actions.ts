@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { requireAdminAction } from "@/lib/auth/guard";
 import { generateTemporaryPassword } from "@/lib/employees/password";
+import { createAdminNotification } from "@/lib/notifications/actions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -91,6 +92,13 @@ export async function createEmployeeAction(
   }
 
   revalidateEmployeePages();
+
+  await createAdminNotification({
+    title: "New employee added",
+    message: `${employee.full_name} (${employee.email}) was added to the workforce.`,
+    type: "employee",
+    metadata: { employee_id: createdUser.user.id },
+  });
 
   return {
     employeeId: createdUser.user.id,

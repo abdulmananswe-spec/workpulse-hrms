@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdminAction } from "@/lib/auth/guard";
+import { createAdminNotification } from "@/lib/notifications/actions";
 import { createClient } from "@/lib/supabase/server";
 
 export type BranchFormInput = {
@@ -54,6 +55,12 @@ export async function createBranchAction(input: BranchFormInput): Promise<void> 
   }
 
   revalidateBranchPages();
+
+  await createAdminNotification({
+    title: "Branch created",
+    message: `${branch.name} was added to the organization.`,
+    type: "branch",
+  });
 }
 
 export async function updateBranchAction(

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdminAction } from "@/lib/auth/guard";
+import { createAdminNotification } from "@/lib/notifications/actions";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type AnnouncementFormInput = {
@@ -89,6 +90,13 @@ export async function createAnnouncementAction(
   if (payload.notifyEmployees) {
     await notifyAllEmployees(payload.title, payload.body, data.id);
   }
+
+  await createAdminNotification({
+    title: "Announcement published",
+    message: `"${payload.title}" was published to employees.`,
+    type: "announcement",
+    metadata: { announcement_id: data.id },
+  });
 
   revalidateAnnouncementPages();
 }

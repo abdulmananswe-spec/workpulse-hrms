@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { requireAdminAction } from "@/lib/auth/guard";
 import { calculateLeaveDays, LEAVE_TYPE_LABELS, type LeaveType } from "@/lib/leaves/utils";
+import { createAdminNotification } from "@/lib/notifications/actions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAuthenticatedAdminProfile } from "@/lib/auth/server";
 
@@ -123,6 +124,13 @@ export async function approveLeaveAction(
     leaveRequestId,
   });
 
+  await createAdminNotification({
+    title: "Leave approved",
+    message: `${typeLabel} leave (${request.start_date} to ${request.end_date}) was approved.`,
+    type: "leave",
+    metadata: { leave_request_id: leaveRequestId },
+  });
+
   revalidateLeavePages();
 }
 
@@ -181,6 +189,13 @@ export async function rejectLeaveAction(
     title: "Leave Request Rejected",
     body: `Your ${typeLabel} leave (${request.start_date} to ${request.end_date}) was rejected. Remarks: ${remarks}`,
     leaveRequestId,
+  });
+
+  await createAdminNotification({
+    title: "Leave rejected",
+    message: `${typeLabel} leave (${request.start_date} to ${request.end_date}) was rejected.`,
+    type: "leave",
+    metadata: { leave_request_id: leaveRequestId },
   });
 
   revalidateLeavePages();

@@ -21,6 +21,12 @@ export const metadata: Metadata = {
   description: "WorkPulse HRMS — Premium employee attendance and HR management platform. Developed by Abdul Manan.",
   applicationName: "WorkPulse HRMS",
   authors: [{ name: "Abdul Manan" }],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "WorkPulse",
+  },
 };
 
 export default function RootLayout({

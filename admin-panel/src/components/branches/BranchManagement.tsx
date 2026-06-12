@@ -49,6 +49,76 @@ export function BranchManagement({ branches }: BranchManagementProps) {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  function useCurrentLocation() {
+    if (!navigator.geolocation) {
+      setError("Geolocation is not supported on this device.");
+      return;
+    }
+
+    setLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setForm((current) => ({
+          ...current,
+          latitude: Number(position.coords.latitude.toFixed(6)),
+          longitude: Number(position.coords.longitude.toFixed(6)),
+        }));
+        setLocationLoading(false);
+      },
+      () => {
+        setError("Unable to retrieve your current location.");
+        setLocationLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 15_000 },
+    );
+  }
+
+  async function searchLocation() {
+    const query = searchQuery.trim();
+    if (!query) return;
+
+    setLocationLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`,
+        { headers: { Accept: "application/json" } },
+      );
+
+      if (!response.ok) {
+        throw new Error("Location search failed.");
+      }
+
+      const results = (await response.json()) as Array<{
+        lat: string;
+        lon: string;
+        display_name: string;
+      }>;
+
+      if (!results.length) {
+        setError("No locations found for that search.");
+        return;
+      }
+
+      const [result] = results;
+      setForm((current) => ({
+        ...current,
+        latitude: Number(Number(result.lat).toFixed(6)),
+        longitude: Number(Number(result.lon).toFixed(6)),
+        address: current.address?.trim() ? current.address : result.display_name,
+      }));
+    } catch (searchError) {
+      setError(
+        searchError instanceof Error ? searchError.message : "Location search failed.",
+      );
+    } finally {
+      setLocationLoading(false);
+    }
+  }
 
   function openCreateForm() {
     setEditingBranch(null);
@@ -245,6 +315,41 @@ export function BranchManagement({ branches }: BranchManagementProps) {
                 }
               />
             </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="location_search">Location Search</Label>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  id="location_search"
+                  placeholder="Search city, address, or landmark"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      void searchLocation();
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={locationLoading}
+                  onClick={() => void searchLocation()}
+                  className="shrink-0"
+                >
+                  {locationLoading ? "Searching..." : "Search"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={locationLoading}
+                  onClick={useCurrentLocation}
+                  className="shrink-0"
+                >
+                  Use current location
+                </Button>
+              </div>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="latitude">Latitude</Label>
               <Input
@@ -294,6 +399,20 @@ export function BranchManagement({ branches }: BranchManagementProps) {
               />
             </div>
           </div>
+
+          {form.latitude !== 0 && form.longitude !== 0 ? (
+            <div className="space-y-2">
+              <Label>Geofence preview</Label>
+              <div className="overflow-hidden rounded-xl border border-border">
+                <BranchMapLazy
+                  latitude={form.latitude}
+                  longitude={form.longitude}
+                  radiusMeters={form.radius_meters}
+                  name={form.name || "Branch preview"}
+                />
+              </div>
+            </div>
+          ) : null}
 
           <div className="flex items-center gap-2">
             <input

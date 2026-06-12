@@ -6,6 +6,10 @@ export type OrgSettings = {
   duty_start_time: string;
   duty_end_time: string;
   late_grace_minutes: number;
+  company_name: string;
+  timezone: string;
+  default_geofence_radius: number;
+  email_notifications_enabled: boolean;
   updated_at: string;
 };
 
@@ -29,9 +33,13 @@ export async function fetchOrgSettings(): Promise<OrgSettings> {
       duty_start_time: "09:00:00",
       duty_end_time: "18:00:00",
       late_grace_minutes: 15,
+      company_name: "WorkPulse HRMS",
+      timezone: "Asia/Karachi",
+      default_geofence_radius: 150,
+      email_notifications_enabled: true,
       updated_at: new Date().toISOString(),
     };
   }
 
-  return data as OrgSettings;
+  return data as unknown as OrgSettings;
 }

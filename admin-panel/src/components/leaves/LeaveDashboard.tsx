@@ -9,6 +9,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { Label } from "@/components/ui/label";
+import { TableScroll } from "@/components/ui/table-scroll";
 import { Textarea } from "@/components/ui/textarea";
 import {
   CheckCircle2,
@@ -196,8 +197,7 @@ export function LeaveDashboard({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
-        <div className="overflow-x-auto">
+      <TableScroll className="rounded-2xl border bg-white shadow-sm">
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
@@ -301,8 +301,7 @@ export function LeaveDashboard({
               )}
             </tbody>
           </table>
-        </div>
-      </div>
+      </TableScroll>
 
       <Dialog
         open={Boolean(actionTarget && actionType)}

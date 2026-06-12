@@ -46,7 +46,7 @@ export function ExecutiveDashboard({ metrics }: ExecutiveDashboardProps) {
       transition={{ duration: 0.35 }}
       className="space-y-6"
     >
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
         <KpiCard label="Total Employees" value={metrics.totalEmployees} icon={Users} gradient="from-blue-500 to-blue-700" change={4.2} changeLabel="vs last month" />
         <KpiCard label="Present Today" value={metrics.presentToday} icon={UserCheck} gradient="from-emerald-500 to-teal-600" change={2.1} changeLabel="vs yesterday" />
         <KpiCard label="Absent Today" value={metrics.absentToday} icon={UserX} gradient="from-rose-500 to-red-600" change={-1.4} changeLabel="vs yesterday" />
@@ -64,7 +64,7 @@ export function ExecutiveDashboard({ metrics }: ExecutiveDashboardProps) {
             </div>
             <TrendingUp className="h-5 w-5 text-emerald-500" />
           </CardHeader>
-          <CardContent className="h-72">
+          <CardContent className="h-56 sm:h-72">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={metrics.attendanceTrend}>
                 <defs>
@@ -89,7 +89,7 @@ export function ExecutiveDashboard({ metrics }: ExecutiveDashboardProps) {
             <CardTitle>Employee Distribution</CardTitle>
             <p className="text-sm text-muted-foreground">By branch</p>
           </CardHeader>
-          <CardContent className="h-72">
+          <CardContent className="h-56 sm:h-72">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={metrics.branchDistribution} dataKey="employees" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={4}>

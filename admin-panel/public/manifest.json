@@ -1,0 +1,11 @@
+{
+  "name": "WorkPulse HRMS Admin",
+  "short_name": "WorkPulse",
+  "description": "WorkPulse HRMS administration dashboard",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": []
+}
