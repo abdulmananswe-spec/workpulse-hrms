@@ -24,9 +24,10 @@ type DropdownMenuProps = {
   children: ReactNode;
   align?: "start" | "end";
   onOpenChange?: (open: boolean) => void;
+  className?: string;
 };
 
-export function DropdownMenu({ children, onOpenChange }: DropdownMenuProps) {
+export function DropdownMenu({ children, onOpenChange, className }: DropdownMenuProps) {
   const [open, setOpenState] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -40,7 +41,7 @@ export function DropdownMenu({ children, onOpenChange }: DropdownMenuProps) {
 
   return (
     <DropdownContext.Provider value={{ open, setOpen, triggerRef }}>
-      <div className="relative inline-block text-left">{children}</div>
+      <div className={cn("relative text-left", className ?? "inline-block")}>{children}</div>
     </DropdownContext.Provider>
   );
 }
@@ -76,10 +77,12 @@ export function DropdownMenuContent({
   children,
   className,
   align = "end",
+  side = "bottom",
 }: {
   children: ReactNode;
   className?: string;
   align?: "start" | "end";
+  side?: "top" | "bottom";
 }) {
   const context = useContext(DropdownContext);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -119,7 +122,8 @@ export function DropdownMenuContent({
       ref={contentRef}
       role="menu"
       className={cn(
-        "absolute z-50 mt-2 max-h-[min(80vh,32rem)] w-80 overflow-y-auto rounded-2xl border border-border bg-card p-2 shadow-xl",
+        "absolute z-50 max-h-[min(80vh,32rem)] w-80 overflow-y-auto rounded-2xl border border-border bg-card p-2 shadow-xl",
+        side === "top" ? "bottom-full mb-2" : "mt-2",
         align === "end" ? "right-0" : "left-0",
         className,
       )}

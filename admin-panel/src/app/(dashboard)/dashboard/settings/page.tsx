@@ -1,8 +1,12 @@
 import { SettingsPanel } from "@/components/settings/SettingsPanel";
+import { getAuthenticatedAdminProfile } from "@/lib/auth/server";
 import { fetchOrgSettings } from "@/lib/settings/queries";
 
 export default async function SettingsPage() {
-  const settings = await fetchOrgSettings();
+  const [settings, { profile }] = await Promise.all([
+    fetchOrgSettings(),
+    getAuthenticatedAdminProfile(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -13,7 +17,7 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      <SettingsPanel settings={settings} />
+      <SettingsPanel settings={settings} profile={profile} />
 
       <footer className="border-t border-border pt-6 text-center text-xs text-muted-foreground">
         <p>© 2026 WorkPulse HRMS</p>

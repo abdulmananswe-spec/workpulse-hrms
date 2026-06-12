@@ -1,8 +1,11 @@
 "use client";
 
+import Link from "next/link";
+import { User } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { ProfileAvatarUpload } from "@/components/profile/ProfileAvatarUpload";
 import { DutyHoursForm } from "@/components/settings/DutyHoursForm";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Button } from "@/components/ui/button";
@@ -11,12 +14,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateCompanySettingsAction } from "@/lib/settings/actions";
 import type { OrgSettings } from "@/lib/settings/queries";
+import type { Profile } from "@/types/database";
 
 type SettingsPanelProps = {
   settings: OrgSettings;
+  profile: Profile;
 };
 
-export function SettingsPanel({ settings }: SettingsPanelProps) {
+export function SettingsPanel({ settings, profile }: SettingsPanelProps) {
   const [companyName, setCompanyName] = useState(settings.company_name ?? "WorkPulse HRMS");
   const [timezone, setTimezone] = useState(settings.timezone ?? "Asia/Karachi");
   const [geofence, setGeofence] = useState(String(settings.default_geofence_radius ?? 150));
@@ -44,6 +49,21 @@ export function SettingsPanel({ settings }: SettingsPanelProps) {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
+          <CardTitle>My Account</CardTitle>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/dashboard/profile">
+              <User className="h-4 w-4" />
+              View full profile
+            </Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <ProfileAvatarUpload profile={profile} />
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Company Settings</CardTitle>

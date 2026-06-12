@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { AdminProfileMenu } from "@/components/layout/AdminProfileMenu";
+import { LogoutButton } from "@/components/auth/LogoutButton";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { cn } from "@/lib/utils";
 import type { Profile } from "@/types/database";
@@ -114,8 +115,22 @@ export function AppSidebar({ profile }: AppSidebarProps) {
         })}
       </nav>
 
-      <div className="border-t border-sidebar-border p-4">
-        {!collapsed ? <AdminProfileMenu profile={profile} /> : null}
+      <div className="mt-auto space-y-2 border-t border-sidebar-border p-3">
+        <AdminProfileMenu profile={profile} collapsed={collapsed} />
+        {!collapsed ? (
+          <LogoutButton
+            variant="outline"
+            className="h-10 w-full justify-center border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            showIcon
+          />
+        ) : (
+          <LogoutButton
+            variant="outline"
+            iconOnly
+            className="mx-auto flex h-10 w-10 items-center justify-center border-destructive/30 p-0 text-destructive hover:bg-destructive/10"
+            showIcon
+          />
+        )}
       </div>
     </>
   );

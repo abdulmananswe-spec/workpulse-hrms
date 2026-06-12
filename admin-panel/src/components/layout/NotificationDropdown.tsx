@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Bell, CheckCheck, Loader2 } from "lucide-react";
+import { Bell, BellOff, CheckCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -100,9 +100,15 @@ export function NotificationDropdown() {
             <Loader2 className="h-5 w-5 animate-spin" />
           </div>
         ) : (listQuery.data ?? []).length === 0 ? (
-          <p className="px-3 py-8 text-center text-sm text-muted-foreground">
-            No notifications yet.
-          </p>
+          <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+              <BellOff className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-medium text-foreground">All caught up</p>
+            <p className="text-xs text-muted-foreground">
+              New employee, leave, and branch alerts will appear here.
+            </p>
+          </div>
         ) : (
           (listQuery.data ?? []).map((item) => (
             <DropdownMenuItem
