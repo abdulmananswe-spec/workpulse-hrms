@@ -16,8 +16,7 @@
       "bundleIdentifier": "com.workpulse.hrms",
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "WorkPulse HRMS uses your location to verify check-in and check-out at your assigned branch.",
-        "NSPhotoLibraryUsageDescription": "WorkPulse HRMS accesses photos to upload your profile avatar."
+        "NSLocationWhenInUseUsageDescription": "WorkPulse HRMS uses your location to verify check-in and check-out at your assigned branch."
       }
     },
     "android": {
@@ -31,9 +30,7 @@
       },
       "permissions": [
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION",
-        "READ_MEDIA_IMAGES",
-        "READ_EXTERNAL_STORAGE"
+        "ACCESS_FINE_LOCATION"
       ],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
@@ -49,12 +46,6 @@
         "expo-location",
         {
           "locationWhenInUsePermission": "Allow WorkPulse HRMS to use your location for check-in and check-out verification."
-        }
-      ],
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "Allow WorkPulse HRMS to access your photos to upload a profile avatar."
         }
       ],
       [

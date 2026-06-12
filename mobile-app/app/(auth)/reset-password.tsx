@@ -1,11 +1,25 @@
-import { useEffect, useState } from "react";
-import { Alert, Pressable, Text, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
+import { FormField, PrimaryButton } from "@/components/ui/FormField";
+import { useDesignTokens } from "@/hooks/useDesignTokens";
 import { supabase } from "@/lib/supabase";
 
 export default function ResetPasswordScreen() {
+  const tokens = useDesignTokens();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isReady, setIsReady] = useState(false);
@@ -29,7 +43,6 @@ export default function ResetPasswordScreen() {
     }
 
     setIsSubmitting(true);
-
     try {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
@@ -48,43 +61,102 @@ export default function ResetPasswordScreen() {
 
   if (!isReady) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-surface-muted">
-        <Text className="text-slate-500">Validating reset link...</Text>
-      </SafeAreaView>
+      <View className="flex-1 items-center justify-center" style={{ backgroundColor: tokens.background }}>
+        <ActivityIndicator size="large" color={tokens.primary} />
+        <Text className="mt-4 text-sm" style={{ color: tokens.textSecondary }}>
+          Validating reset link...
+        </Text>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-surface-muted px-6 pt-8">
-      <Text className="text-3xl font-bold text-slate-900">Set new password</Text>
-      <Text className="mt-2 text-slate-500">Choose a secure password for your account.</Text>
+    <View className="flex-1" style={{ backgroundColor: tokens.background }}>
+      <LinearGradient colors={tokens.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} className="absolute inset-0" />
+      <LinearGradient
+        colors={["transparent", tokens.background]}
+        className="absolute inset-0"
+        start={{ x: 0, y: 0.3 }}
+        end={{ x: 0, y: 1 }}
+      />
 
-      <View className="mt-8 rounded-3xl bg-white p-5 shadow-premium">
-        <Text className="mb-2 text-sm font-semibold text-slate-700">New Password</Text>
-        <TextInput
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3"
-        />
-        <Text className="mb-2 text-sm font-semibold text-slate-700">Confirm Password</Text>
-        <TextInput
-          secureTextEntry
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3"
-        />
-      </View>
+      <SafeAreaView className="flex-1" edges={["top", "bottom"]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          className="flex-1"
+        >
+          <ScrollView
+            className="flex-1"
+            contentContainerClassName="flex-grow px-6 pb-6 pt-6"
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <Pressable onPress={() => router.replace("/(auth)/login")} className="mb-6 flex-row items-center self-start">
+              <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
+              <Text className="ml-2 font-semibold text-white">Back</Text>
+            </Pressable>
 
-      <Pressable
-        disabled={isSubmitting}
-        onPress={() => void handleSubmit()}
-        className={`mt-6 rounded-2xl py-4 ${isSubmitting ? "bg-indigo-400" : "bg-indigo-600"}`}
-      >
-        <Text className="text-center font-bold text-white">
-          {isSubmitting ? "Updating..." : "Update Password"}
-        </Text>
-      </Pressable>
-    </SafeAreaView>
+            <View className="mb-8">
+              <Text className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-100">
+                Security
+              </Text>
+              <Text className="mt-3 text-[32px] font-bold leading-tight tracking-tight text-white">
+                Set new password
+              </Text>
+              <Text className="mt-3 text-base leading-6 text-indigo-100/90">
+                Choose a strong password to protect your HR workspace.
+              </Text>
+            </View>
+
+            <View
+              className="rounded-[28px] p-6"
+              style={{
+                backgroundColor: tokens.backgroundElevated,
+                borderWidth: 1,
+                borderColor: tokens.borderSubtle,
+                shadowColor: "#0F172A",
+                shadowOffset: { width: 0, height: 16 },
+                shadowOpacity: 0.12,
+                shadowRadius: 32,
+                elevation: 10,
+              }}
+            >
+              <FormField
+                label="New Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoCapitalize="none"
+                textContentType="newPassword"
+                placeholder="Minimum 8 characters"
+              />
+              <FormField
+                label="Confirm Password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+                autoCapitalize="none"
+                textContentType="newPassword"
+                placeholder="Re-enter password"
+                onSubmitEditing={() => void handleSubmit()}
+              />
+
+              <PrimaryButton
+                title={isSubmitting ? "Updating..." : "Update Password"}
+                loading={isSubmitting}
+                onPress={() => void handleSubmit()}
+              />
+
+              <View className="mt-6 flex-row items-center justify-center gap-2">
+                <Ionicons name="lock-closed-outline" size={16} color={tokens.textMuted} />
+                <Text className="text-xs" style={{ color: tokens.textMuted }}>
+                  Passwords are encrypted end-to-end
+                </Text>
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }

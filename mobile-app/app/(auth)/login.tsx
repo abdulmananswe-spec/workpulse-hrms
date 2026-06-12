@@ -1,3 +1,5 @@
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { Link } from "expo-router";
 import { useState } from "react";
 import {
@@ -5,36 +7,31 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { FormField, PrimaryButton } from "@/components/ui/FormField";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDesignTokens } from "@/hooks/useDesignTokens";
 import { UNAUTHORIZED_MESSAGE } from "@/lib/auth";
 import { isValidEmail } from "@/lib/validation";
 
 function mapAuthError(error: unknown): string {
   if (error instanceof Error) {
-    if (error.message === UNAUTHORIZED_MESSAGE) {
-      return UNAUTHORIZED_MESSAGE;
-    }
-
+    if (error.message === UNAUTHORIZED_MESSAGE) return UNAUTHORIZED_MESSAGE;
     if (error.message.toLowerCase().includes("invalid login credentials")) {
       return "Invalid email or password.";
     }
-
     return error.message;
   }
-
   return "Unable to sign in. Please try again.";
 }
 
 export default function LoginScreen() {
   const { signIn, authError, clearAuthError } = useAuth();
+  const tokens = useDesignTokens();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fieldError, setFieldError] = useState<string | null>(null);
@@ -57,7 +54,6 @@ export default function LoginScreen() {
     }
 
     setIsSubmitting(true);
-
     try {
       await signIn(email, password);
     } catch (error) {
@@ -68,217 +64,129 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.flex}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
-      >
-        <ScrollView
-          style={styles.flex}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+    <View className="flex-1" style={{ backgroundColor: tokens.background }}>
+      <LinearGradient colors={tokens.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} className="absolute inset-0" />
+      <LinearGradient
+        colors={["transparent", tokens.background]}
+        className="absolute inset-0"
+        start={{ x: 0, y: 0.35 }}
+        end={{ x: 0, y: 1 }}
+      />
+
+      <SafeAreaView className="flex-1" edges={["top", "bottom"]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          className="flex-1"
+          keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
         >
-          <View style={styles.hero}>
-            <Text style={styles.badge}>WorkPulse HRMS</Text>
-            <Text style={styles.title}>Welcome back</Text>
-            <Text style={styles.subtitle}>
-              Sign in to access your attendance workspace.
+          <ScrollView
+            className="flex-1"
+            contentContainerClassName="flex-grow px-6 pb-6 pt-8"
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View className="mb-8">
+              <View
+                className="mb-5 h-14 w-14 items-center justify-center rounded-2xl"
+                style={{ backgroundColor: "rgba(255,255,255,0.16)" }}
+              >
+                <Text className="text-lg font-bold text-white">WP</Text>
+              </View>
+              <Text className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-100">
+                WorkPulse HRMS
+              </Text>
+              <Text className="mt-3 text-[34px] font-bold leading-tight tracking-tight text-white">
+                Enterprise attendance, simplified.
+              </Text>
+              <Text className="mt-3 text-base leading-6 text-indigo-100/90">
+                Secure sign-in for employees. Trusted by modern HR teams.
+              </Text>
+            </View>
+
+            <View
+              className="rounded-[28px] p-6"
+              style={{
+                backgroundColor: tokens.backgroundElevated,
+                borderWidth: 1,
+                borderColor: tokens.borderSubtle,
+                shadowColor: "#0F172A",
+                shadowOffset: { width: 0, height: 16 },
+                shadowOpacity: 0.12,
+                shadowRadius: 32,
+                elevation: 10,
+              }}
+            >
+              <Text className="text-xl font-bold" style={{ color: tokens.text }}>
+                Sign in
+              </Text>
+              <Text className="mt-1 text-sm" style={{ color: tokens.textSecondary }}>
+                Access your attendance workspace
+              </Text>
+
+              {displayError ? (
+                <View
+                  className="mt-4 rounded-2xl px-4 py-3"
+                  style={{ backgroundColor: tokens.dangerSoft, borderWidth: 1, borderColor: `${tokens.danger}33` }}
+                >
+                  <Text className="text-center text-sm font-medium" style={{ color: tokens.danger }}>
+                    {displayError}
+                  </Text>
+                </View>
+              ) : null}
+
+              <View className="mt-5">
+                <FormField
+                  label="Work Email"
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  keyboardType="email-address"
+                  textContentType="emailAddress"
+                  placeholder="employee@company.com"
+                  returnKeyType="next"
+                />
+                <FormField
+                  label="Password"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  textContentType="password"
+                  placeholder="Enter your password"
+                  returnKeyType="done"
+                  onSubmitEditing={() => void handleLogin()}
+                />
+              </View>
+
+              <Link href="/(auth)/forgot-password" asChild>
+                <Text className="mb-2 text-center text-sm font-semibold" style={{ color: tokens.primary }}>
+                  Forgot password?
+                </Text>
+              </Link>
+
+              <PrimaryButton
+                title={isSubmitting ? "Signing in..." : "Sign In Securely"}
+                loading={isSubmitting}
+                onPress={() => void handleLogin()}
+              />
+
+              <View className="mt-6 flex-row items-center justify-center gap-2">
+                <Ionicons name="shield-checkmark-outline" size={16} color={tokens.textMuted} />
+                <Text className="text-xs" style={{ color: tokens.textMuted }}>
+                  Encrypted connection · SOC-ready infrastructure
+                </Text>
+              </View>
+            </View>
+          </ScrollView>
+
+          <View className="px-6 pb-2">
+            <Text className="text-center text-xs" style={{ color: tokens.textMuted }}>
+              © 2026 WorkPulse HRMS · Developed by Abdul Manan
             </Text>
           </View>
-
-          <View style={styles.card}>
-            {displayError ? (
-              <View style={styles.errorBanner}>
-                <Text style={styles.errorBannerText}>{displayError}</Text>
-              </View>
-            ) : null}
-
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              autoComplete="email"
-              keyboardType="email-address"
-              textContentType="emailAddress"
-              placeholder="employee@company.com"
-              placeholderTextColor="#94a3b8"
-              returnKeyType="next"
-            />
-
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              textContentType="password"
-              placeholder="Enter your password"
-              placeholderTextColor="#94a3b8"
-              returnKeyType="done"
-              onSubmitEditing={() => void handleLogin()}
-            />
-
-            <Link href="/(auth)/forgot-password" style={styles.link}>
-              Forgot password?
-            </Link>
-          </View>
-        </ScrollView>
-
-        <View style={styles.footer}>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            disabled={isSubmitting}
-            onPress={() => void handleLogin()}
-            style={[styles.signInButton, isSubmitting && styles.signInButtonDisabled]}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator color="#ffffff" size="small" />
-            ) : (
-              <Text style={styles.signInButtonText}>Sign In</Text>
-            )}
-          </TouchableOpacity>
-          <Text style={styles.copyright}>© 2026 WorkPulse HRMS</Text>
-          <Text style={styles.developer}>Developed by Abdul Manan</Text>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#f8fafc",
-  },
-  flex: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 16,
-  },
-  hero: {
-    marginBottom: 24,
-  },
-  badge: {
-    alignSelf: "flex-start",
-    backgroundColor: "#dbeafe",
-    color: "#1d4ed8",
-    fontSize: 12,
-    fontWeight: "700",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    marginBottom: 16,
-    overflow: "hidden",
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: "#0f172a",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#64748b",
-  },
-  card: {
-    backgroundColor: "#ffffff",
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    shadowColor: "#0f172a",
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 3,
-    overflow: "visible",
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#334155",
-    marginBottom: 8,
-  },
-  input: {
-    width: "100%",
-    height: 52,
-    borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: "#0f172a",
-    backgroundColor: "#ffffff",
-    marginBottom: 16,
-  },
-  link: {
-    marginTop: 4,
-    textAlign: "center",
-    color: "#2563eb",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  footer: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: 16,
-    backgroundColor: "#f8fafc",
-    borderTopWidth: 1,
-    borderTopColor: "#e2e8f0",
-  },
-  signInButton: {
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: "#4f46e5",
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 4,
-    shadowColor: "#4f46e5",
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  signInButtonDisabled: {
-    opacity: 0.75,
-  },
-  signInButtonText: {
-    color: "#ffffff",
-    fontSize: 17,
-    fontWeight: "700",
-    letterSpacing: 0.3,
-  },
-  copyright: {
-    marginTop: 16,
-    textAlign: "center",
-    fontSize: 11,
-    color: "#94a3b8",
-  },
-  developer: {
-    marginTop: 2,
-    textAlign: "center",
-    fontSize: 11,
-    color: "#94a3b8",
-  },
-  errorBanner: {
-    backgroundColor: "#fef2f2",
-    borderColor: "#fecaca",
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-  },
-  errorBannerText: {
-    color: "#b91c1c",
-    fontSize: 14,
-    textAlign: "center",
-  },
-});

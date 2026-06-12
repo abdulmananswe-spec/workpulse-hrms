@@ -1,29 +1,29 @@
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { Link, router } from "expo-router";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Button } from "@/components/ui/Button";
-import { TextInput } from "@/components/ui/TextInput";
+import { FormField, PrimaryButton } from "@/components/ui/FormField";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDesignTokens } from "@/hooks/useDesignTokens";
 
 function mapResetError(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-
+  if (error instanceof Error) return error.message;
   return "Unable to send reset email. Please try again.";
 }
 
 export default function ForgotPasswordScreen() {
   const { resetPassword } = useAuth();
+  const tokens = useDesignTokens();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -39,7 +39,6 @@ export default function ForgotPasswordScreen() {
     }
 
     setIsSubmitting(true);
-
     try {
       await resetPassword(email);
       setSuccess("Password reset instructions have been sent to your email.");
@@ -51,139 +50,112 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "android" ? "height" : "padding"}
-        style={styles.flex}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
+    <View className="flex-1" style={{ backgroundColor: tokens.background }}>
+      <LinearGradient colors={tokens.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} className="absolute inset-0" />
+      <LinearGradient
+        colors={["transparent", tokens.background]}
+        className="absolute inset-0"
+        start={{ x: 0, y: 0.3 }}
+        end={{ x: 0, y: 1 }}
+      />
+
+      <SafeAreaView className="flex-1" edges={["top", "bottom"]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          className="flex-1"
         >
-          <View style={styles.hero}>
-            <Text style={styles.title}>Forgot password?</Text>
-            <Text style={styles.subtitle}>
-              Enter your email and we will send you reset instructions.
-            </Text>
-          </View>
+          <ScrollView
+            className="flex-1"
+            contentContainerClassName="flex-grow px-6 pb-6 pt-6"
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <Pressable onPress={() => router.back()} className="mb-6 flex-row items-center self-start">
+              <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
+              <Text className="ml-2 font-semibold text-white">Back</Text>
+            </Pressable>
 
-          <View style={styles.card}>
-            {error ? (
-              <View style={styles.errorBanner}>
-                <Text style={styles.errorBannerText}>{error}</Text>
-              </View>
-            ) : null}
+            <View className="mb-8">
+              <Text className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-100">
+                Account Recovery
+              </Text>
+              <Text className="mt-3 text-[32px] font-bold leading-tight tracking-tight text-white">
+                Reset your password
+              </Text>
+              <Text className="mt-3 text-base leading-6 text-indigo-100/90">
+                Enter your work email and we will send secure reset instructions.
+              </Text>
+            </View>
 
-            {success ? (
-              <View style={styles.successBanner}>
-                <Text style={styles.successBannerText}>{success}</Text>
-              </View>
-            ) : null}
+            <View
+              className="rounded-[28px] p-6"
+              style={{
+                backgroundColor: tokens.backgroundElevated,
+                borderWidth: 1,
+                borderColor: tokens.borderSubtle,
+                shadowColor: "#0F172A",
+                shadowOffset: { width: 0, height: 16 },
+                shadowOpacity: 0.12,
+                shadowRadius: 32,
+                elevation: 10,
+              }}
+            >
+              {error ? (
+                <View
+                  className="mb-4 rounded-2xl px-4 py-3"
+                  style={{ backgroundColor: tokens.dangerSoft, borderWidth: 1, borderColor: `${tokens.danger}33` }}
+                >
+                  <Text className="text-center text-sm font-medium" style={{ color: tokens.danger }}>
+                    {error}
+                  </Text>
+                </View>
+              ) : null}
 
-            <TextInput
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              autoComplete="email"
-              keyboardType="email-address"
-              textContentType="emailAddress"
-              placeholder="employee@company.com"
-            />
+              {success ? (
+                <View
+                  className="mb-4 rounded-2xl px-4 py-3"
+                  style={{ backgroundColor: tokens.successSoft, borderWidth: 1, borderColor: `${tokens.success}33` }}
+                >
+                  <Text className="text-center text-sm font-medium" style={{ color: tokens.success }}>
+                    {success}
+                  </Text>
+                </View>
+              ) : null}
 
-            <Button
-              title="Send Reset Link"
-              loading={isSubmitting}
-              onPress={() => void handleReset()}
-            />
-
-            <Link href="/(auth)/login" style={styles.link}>
-              Back to sign in
-            </Link>
-
-            {success ? (
-              <Button
-                title="Return to Login"
-                variant="secondary"
-                style={styles.backButton}
-                onPress={() => router.replace("/(auth)/login")}
+              <FormField
+                label="Work Email"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                autoComplete="email"
+                keyboardType="email-address"
+                textContentType="emailAddress"
+                placeholder="employee@company.com"
               />
-            ) : null}
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+              <PrimaryButton
+                title={isSubmitting ? "Sending..." : "Send Reset Link"}
+                loading={isSubmitting}
+                onPress={() => void handleReset()}
+              />
+
+              {success ? (
+                <PrimaryButton
+                  title="Return to Sign In"
+                  variant="secondary"
+                  onPress={() => router.replace("/(auth)/login")}
+                />
+              ) : null}
+
+              <Link href="/(auth)/login" asChild>
+                <Text className="mt-4 text-center text-sm font-semibold" style={{ color: tokens.primary }}>
+                  Back to sign in
+                </Text>
+              </Link>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#f8fafc",
-  },
-  flex: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-    padding: 24,
-  },
-  hero: {
-    marginBottom: 28,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: "800",
-    color: "#0f172a",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#64748b",
-  },
-  card: {
-    backgroundColor: "#ffffff",
-    borderRadius: 24,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  errorBanner: {
-    backgroundColor: "#fef2f2",
-    borderColor: "#fecaca",
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-  },
-  errorBannerText: {
-    color: "#b91c1c",
-    fontSize: 14,
-    textAlign: "center",
-  },
-  successBanner: {
-    backgroundColor: "#ecfdf5",
-    borderColor: "#bbf7d0",
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-  },
-  successBannerText: {
-    color: "#047857",
-    fontSize: 14,
-    textAlign: "center",
-  },
-  link: {
-    marginTop: 18,
-    textAlign: "center",
-    color: "#2563eb",
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  backButton: {
-    marginTop: 12,
-  },
-});

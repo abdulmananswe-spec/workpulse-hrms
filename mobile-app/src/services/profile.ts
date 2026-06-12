@@ -48,50 +48,6 @@ export async function updateProfileDetails(
   return data;
 }
 
-export async function updateAvatarUrl(
-  userId: string,
-  avatarUrl: string | null,
-): Promise<Profile> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .update({ avatar_url: avatarUrl })
-    .eq("id", userId)
-    .select("*")
-    .single();
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return data;
-}
-
-export async function uploadAvatar(
-  userId: string,
-  uri: string,
-  mimeType = "image/jpeg",
-): Promise<string> {
-  const extension = mimeType.split("/")[1] ?? "jpg";
-  const filePath = `${userId}/avatar.${extension}`;
-
-  const response = await fetch(uri);
-  const blob = await response.blob();
-
-  const { error: uploadError } = await supabase.storage
-    .from("avatars")
-    .upload(filePath, blob, {
-      upsert: true,
-      contentType: mimeType,
-    });
-
-  if (uploadError) {
-    throw new Error(uploadError.message);
-  }
-
-  const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-  return data.publicUrl;
-}
-
 export async function changePassword(
   currentPassword: string,
   newPassword: string,

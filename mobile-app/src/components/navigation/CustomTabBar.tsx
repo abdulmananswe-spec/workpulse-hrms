@@ -1,8 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
+import { useSegments } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { useDesignTokens } from "@/hooks/useDesignTokens";
+import { useTheme } from "@/providers/ThemeProvider";
 
 const tabs: Array<{
   name: string;
@@ -11,65 +16,114 @@ const tabs: Array<{
   iconFocused: keyof typeof Ionicons.glyphMap;
 }> = [
   { name: "index", label: "Home", icon: "home-outline", iconFocused: "home" },
-  { name: "attendance", label: "Attendance", icon: "time-outline", iconFocused: "time" },
-  { name: "leaves", label: "Leaves", icon: "calendar-outline", iconFocused: "calendar" },
-  { name: "notifications", label: "Alerts", icon: "notifications-outline", iconFocused: "notifications" },
+  { name: "attendance", label: "Time", icon: "time-outline", iconFocused: "time" },
+  { name: "leaves", label: "Leave", icon: "calendar-outline", iconFocused: "calendar" },
+  { name: "notifications", label: "Inbox", icon: "notifications-outline", iconFocused: "notifications" },
   { name: "profile", label: "Profile", icon: "person-outline", iconFocused: "person" },
 ];
 
+const SUB_SCREENS = new Set([
+  "settings",
+  "branch",
+  "announcements",
+  "apply",
+  "history",
+  "calendar",
+  "correction",
+]);
+
+export function useTabBarVisible() {
+  const segments = useSegments();
+  const last = segments[segments.length - 1];
+  return !SUB_SCREENS.has(last ?? "");
+}
+
+export function useTabBarClearance() {
+  const insets = useSafeAreaInsets();
+  const visible = useTabBarVisible();
+  if (!visible) return Math.max(insets.bottom, 16) + 24;
+  const TAB_BAR_HEIGHT = 72;
+  const FLOATING_GAP = 12;
+  return TAB_BAR_HEIGHT + Math.max(insets.bottom, 12) + FLOATING_GAP + 32;
+}
+
 export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const { isDark } = useTheme();
+  const tokens = useDesignTokens();
+  const visible = useTabBarVisible();
+
+  if (!visible) return null;
 
   return (
     <View
-      className="border-t border-slate-200 bg-white/95 px-2 pt-2"
-      style={{ paddingBottom: Math.max(insets.bottom, 10) }}
+      className="absolute bottom-0 left-0 right-0 px-4"
+      style={{ paddingBottom: Math.max(insets.bottom, 12) }}
+      pointerEvents="box-none"
     >
-      <View className="relative flex-row items-center justify-between rounded-[28px] bg-slate-50 px-1 py-1">
-        {state.routes.map((route, index) => {
-          const tab = tabs.find((item) => item.name === route.name);
-          if (!tab) return null;
+      <BlurView
+        intensity={isDark ? 28 : 40}
+        tint={isDark ? "dark" : "light"}
+        style={{
+          borderRadius: 28,
+          overflow: "hidden",
+          borderWidth: 1,
+          borderColor: tokens.borderSubtle,
+        }}
+      >
+        <View
+          className="flex-row items-center px-2 py-2"
+          style={{ backgroundColor: tokens.tabBar }}
+        >
+          {state.routes.map((route, index) => {
+            const tab = tabs.find((item) => item.name === route.name);
+            if (!tab) return null;
 
-          const isFocused = state.index === index;
+            const isFocused = state.index === index;
 
-          return (
-            <Pressable
-              key={route.key}
-              accessibilityRole="button"
-              onPress={() => {
-                void Haptics.selectionAsync();
-                const event = navigation.emit({
-                  type: "tabPress",
-                  target: route.key,
-                  canPreventDefault: true,
-                });
-                if (!isFocused && !event.defaultPrevented) {
-                  navigation.navigate(route.name);
-                }
-              }}
-              className="relative flex-1 items-center py-2"
-            >
-              {isFocused ? (
-                <View className="absolute inset-x-1 inset-y-0 rounded-[22px] bg-white shadow-premium" />
-              ) : null}
-              <View className="items-center">
-                <Ionicons
-                  name={isFocused ? tab.iconFocused : tab.icon}
-                  size={20}
-                  color={isFocused ? "#4f46e5" : "#94a3b8"}
-                />
-                <Text
-                  className={`mt-1 text-[11px] font-semibold ${
-                    isFocused ? "text-indigo-600" : "text-slate-400"
-                  }`}
-                >
-                  {tab.label}
-                </Text>
-              </View>
-            </Pressable>
-          );
-        })}
-      </View>
+            return (
+              <Pressable
+                key={route.key}
+                accessibilityRole="button"
+                accessibilityState={isFocused ? { selected: true } : {}}
+
+                onPress={() => {
+                  void Haptics.selectionAsync();
+                  const event = navigation.emit({
+                    type: "tabPress",
+                    target: route.key,
+                    canPreventDefault: true,
+                  });
+                  if (!isFocused && !event.defaultPrevented) {
+                    navigation.navigate(route.name);
+                  }
+                }}
+                className="relative flex-1 items-center py-2"
+              >
+                {isFocused ? (
+                  <View
+                    className="absolute inset-x-1 inset-y-0 rounded-[20px]"
+                    style={{ backgroundColor: tokens.primarySoft }}
+                  />
+                ) : null}
+                <View className="items-center">
+                  <Ionicons
+                    name={isFocused ? tab.iconFocused : tab.icon}
+                    size={21}
+                    color={isFocused ? tokens.primary : tokens.textMuted}
+                  />
+                  <Text
+                    className="mt-1 text-[10px] font-semibold"
+                    style={{ color: isFocused ? tokens.primary : tokens.textMuted }}
+                  >
+                    {tab.label}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+      </BlurView>
     </View>
   );
 }

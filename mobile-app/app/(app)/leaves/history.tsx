@@ -1,22 +1,18 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { ActivityIndicator, Alert, Text, View } from "react-native";
 
-import { EmptyState } from "@/components/ui/Feedback";
+import { EmptyState, StatusBadge } from "@/components/ui/Feedback";
+import { PressableScale } from "@/components/ui/PressableScale";
+import { SubScreenLayout } from "@/components/ui/SubScreenLayout";
+import { useDesignTokens } from "@/hooks/useDesignTokens";
 import { useCancelLeave, useLeaveRequests } from "@/hooks/useHrQueries";
 import { LEAVE_TYPE_LABELS, type LeaveRequest } from "@/types/hr";
 
 const sections = ["pending", "approved", "rejected", "cancelled"] as const;
 
 export default function LeaveHistoryScreen() {
+  const tokens = useDesignTokens();
   const requests = useLeaveRequests();
   const cancelLeave = useCancelLeave();
   const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -48,69 +44,97 @@ export default function LeaveHistoryScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-surface-muted" edges={["top"]}>
-      <ScrollView contentContainerClassName="px-5 pb-10 pt-4">
-        <Pressable onPress={() => router.back()} className="mb-4">
-          <Text className="font-semibold text-indigo-600">Back</Text>
-        </Pressable>
-        <Text className="text-3xl font-bold text-slate-900">Leave History</Text>
-
-        {sections.map((status) => {
-          const items = (requests.data ?? []).filter((item) => item.status === status);
-          return (
-            <View key={status} className="mt-8">
-              <Text className="mb-3 text-lg font-bold capitalize text-slate-900">
-                {status}
-              </Text>
-              {items.length === 0 ? (
-                <EmptyState
-                  title={`No ${status} requests`}
-                  description="Your leave requests will appear here."
-                />
-              ) : (
-                items.map((item) => (
-                  <View key={item.id} className="mb-3 rounded-2xl bg-white p-4 shadow-premium">
-                    <Text className="font-semibold text-slate-900">
-                      {LEAVE_TYPE_LABELS[item.leave_type]}
+    <SubScreenLayout
+      title="Leave History"
+      subtitle="Track pending, approved, and rejected requests."
+      onBack={() => router.back()}
+    >
+      {sections.map((status) => {
+        const items = (requests.data ?? []).filter((item) => item.status === status);
+        return (
+          <View key={status} className="mb-8">
+            <Text className="mb-3 text-lg font-bold capitalize" style={{ color: tokens.text }}>
+              {status}
+            </Text>
+            {items.length === 0 ? (
+              <EmptyState
+                title={`No ${status} requests`}
+                description="Your leave requests will appear here."
+                icon="calendar-outline"
+              />
+            ) : (
+              items.map((item) => (
+                <View
+                  key={item.id}
+                  className="mb-3 rounded-3xl p-4"
+                  style={{
+                    backgroundColor: tokens.backgroundElevated,
+                    borderWidth: 1,
+                    borderColor: tokens.borderSubtle,
+                  }}
+                >
+                  <View className="flex-row items-start justify-between">
+                    <View className="flex-1 pr-3">
+                      <Text className="font-semibold" style={{ color: tokens.text }}>
+                        {LEAVE_TYPE_LABELS[item.leave_type]}
+                      </Text>
+                      <Text className="mt-1 text-sm" style={{ color: tokens.textSecondary }}>
+                        {item.start_date} to {item.end_date}
+                      </Text>
+                    </View>
+                    <StatusBadge
+                      label={item.status}
+                      tone={
+                        item.status === "approved"
+                          ? "success"
+                          : item.status === "rejected"
+                            ? "danger"
+                            : item.status === "pending"
+                              ? "warning"
+                              : "neutral"
+                      }
+                    />
+                  </View>
+                  {item.reason ? (
+                    <Text className="mt-2 text-sm leading-5" style={{ color: tokens.textSecondary }}>
+                      {item.reason}
                     </Text>
-                    <Text className="mt-1 text-sm text-slate-500">
-                      {item.start_date} to {item.end_date}
-                    </Text>
-                    {item.reason ? (
-                      <Text className="mt-2 text-sm text-slate-600">{item.reason}</Text>
-                    ) : null}
-                    {item.admin_remarks ? (
-                      <View className="mt-3 rounded-xl bg-slate-50 p-3">
-                        <Text className="text-xs font-semibold uppercase text-slate-500">
-                          Admin Remarks
-                        </Text>
-                        <Text className="mt-1 text-sm text-slate-700">
-                          {item.admin_remarks}
-                        </Text>
-                      </View>
-                    ) : null}
-                    {status === "pending" ? (
-                      <Pressable
-                        onPress={() => handleCancel(item)}
-                        disabled={cancellingId === item.id}
-                        className="mt-4 items-center rounded-xl border border-rose-200 bg-rose-50 py-3"
+                  ) : null}
+                  {item.admin_remarks ? (
+                    <View
+                      className="mt-3 rounded-2xl p-3"
+                      style={{ backgroundColor: tokens.backgroundMuted }}
+                    >
+                      <Text className="text-xs font-semibold uppercase" style={{ color: tokens.textMuted }}>
+                        Admin Remarks
+                      </Text>
+                      <Text className="mt-1 text-sm" style={{ color: tokens.textSecondary }}>
+                        {item.admin_remarks}
+                      </Text>
+                    </View>
+                  ) : null}
+                  {status === "pending" ? (
+                    <PressableScale onPress={() => handleCancel(item)}>
+                      <View
+                        className="mt-4 items-center rounded-xl py-3"
+                        style={{ backgroundColor: tokens.dangerSoft }}
                       >
                         {cancellingId === item.id ? (
-                          <ActivityIndicator color="#e11d48" />
+                          <ActivityIndicator color={tokens.danger} />
                         ) : (
-                          <Text className="font-semibold text-rose-600">
+                          <Text className="font-semibold" style={{ color: tokens.danger }}>
                             Cancel Request
                           </Text>
                         )}
-                      </Pressable>
-                    ) : null}
-                  </View>
-                ))
-              )}
-            </View>
-          );
-        })}
-      </ScrollView>
-    </SafeAreaView>
+                      </View>
+                    </PressableScale>
+                  ) : null}
+                </View>
+              ))
+            )}
+          </View>
+        );
+      })}
+    </SubScreenLayout>
   );
 }

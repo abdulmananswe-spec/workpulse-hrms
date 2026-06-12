@@ -1,18 +1,21 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { RefreshControl, Text, View } from "react-native";
 
-import { EmptyState } from "@/components/ui/Feedback";
+import { PressableScale } from "@/components/ui/PressableScale";
+import { EmptyState, SectionHeader } from "@/components/ui/Feedback";
+import { ListRow } from "@/components/ui/ListRow";
+import { ScreenSafeTop, ScreenShell } from "@/components/ui/ScreenShell";
 import {
   useAnnouncements,
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
   useNotifications,
 } from "@/hooks/useHrQueries";
+import { useDesignTokens } from "@/hooks/useDesignTokens";
 import { getUnreadCount } from "@/services/notifications";
 
 export default function NotificationsScreen() {
+  const tokens = useDesignTokens();
   const notifications = useNotifications();
   const announcements = useAnnouncements();
   const markRead = useMarkNotificationRead();
@@ -20,9 +23,9 @@ export default function NotificationsScreen() {
   const unread = getUnreadCount(notifications.data ?? []);
 
   return (
-    <SafeAreaView className="flex-1 bg-surface-muted" edges={["top"]}>
-      <ScrollView
-        contentContainerClassName="px-5 pb-28 pt-4"
+    <ScreenSafeTop>
+      <ScreenShell
+        contentClassName="px-5 pt-4"
         refreshControl={
           <RefreshControl
             refreshing={notifications.isRefetching || announcements.isRefetching}
@@ -33,67 +36,76 @@ export default function NotificationsScreen() {
           />
         }
       >
-        <View className="mb-5 flex-row items-center justify-between">
-          <View>
-            <Text className="text-3xl font-bold text-slate-900">Notifications</Text>
-            <Text className="mt-1 text-sm text-slate-500">{unread} unread alerts</Text>
-          </View>
-          {unread > 0 ? (
-            <Pressable
-              onPress={() => void markAll.mutateAsync()}
-              className="rounded-full bg-indigo-600 px-4 py-2"
-            >
-              <Text className="text-sm font-semibold text-white">Mark all read</Text>
-            </Pressable>
-          ) : null}
-        </View>
+        <SectionHeader
+          title="Inbox"
+          subtitle={`${unread} unread notification${unread === 1 ? "" : "s"}`}
+          action={
+            unread > 0 ? (
+              <PressableScale onPress={() => void markAll.mutateAsync()}>
+                <View className="rounded-full px-4 py-2" style={{ backgroundColor: tokens.primary }}>
+                  <Text className="text-xs font-semibold text-white">Mark all read</Text>
+                </View>
+              </PressableScale>
+            ) : undefined
+          }
+        />
 
-        <Pressable
+        <ListRow
+          title="Company Announcements"
+          subtitle="Priority updates from your organization"
+          icon="megaphone-outline"
           onPress={() => router.push("/(app)/profile/announcements")}
-          className="mb-6 rounded-3xl bg-white p-4 shadow-premium"
-        >
-          <View className="flex-row items-center">
-            <Ionicons name="megaphone-outline" size={22} color="#4f46e5" />
-            <View className="ml-3 flex-1">
-              <Text className="font-semibold text-slate-900">Announcements Feed</Text>
-              <Text className="text-sm text-slate-500">Company updates and priority notices</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color="#94a3b8" />
-          </View>
-        </Pressable>
+        />
 
         {(notifications.data ?? []).length === 0 ? (
           <EmptyState
-            title="No notifications yet"
-            description="Leave approvals, attendance updates, and announcements will appear here."
+            title="All caught up"
+            description="Leave approvals, attendance updates, and HR alerts will appear here."
+            icon="notifications-outline"
           />
         ) : (
           (notifications.data ?? []).map((item) => (
-            <Pressable
+            <PressableScale
               key={item.id}
               onPress={() => {
                 if (!item.is_read) void markRead.mutateAsync(item.id);
               }}
-              className={`mb-3 rounded-2xl border p-4 ${
-                item.is_read ? "border-slate-100 bg-white" : "border-indigo-100 bg-indigo-50"
-              }`}
             >
-              <View className="flex-row items-start justify-between">
-                <View className="flex-1">
-                  <Text className="font-semibold text-slate-900">{item.title}</Text>
-                  <Text className="mt-2 text-sm text-slate-600">{item.body}</Text>
+              <View
+                className="mb-3 rounded-3xl p-4"
+                style={{
+                  backgroundColor: item.is_read ? tokens.backgroundElevated : tokens.primarySoft,
+                  borderWidth: 1,
+                  borderColor: item.is_read ? tokens.borderSubtle : `${tokens.primary}33`,
+                }}
+              >
+                <View className="flex-row items-start justify-between">
+                  <View className="flex-1 pr-3">
+                    <Text className="font-semibold" style={{ color: tokens.text }}>
+                      {item.title}
+                    </Text>
+                    <Text className="mt-2 text-sm leading-5" style={{ color: tokens.textSecondary }}>
+                      {item.body}
+                    </Text>
+                  </View>
+                  {!item.is_read ? (
+                    <View
+                      className="mt-1 h-2.5 w-2.5 rounded-full"
+                      style={{ backgroundColor: tokens.primary }}
+                    />
+                  ) : null}
                 </View>
-                {!item.is_read ? (
-                  <View className="ml-3 h-2.5 w-2.5 rounded-full bg-indigo-600" />
-                ) : null}
+                <Text
+                  className="mt-3 text-[11px] font-semibold uppercase tracking-wider"
+                  style={{ color: tokens.textMuted }}
+                >
+                  {item.type.replaceAll("_", " ")}
+                </Text>
               </View>
-              <Text className="mt-3 text-xs capitalize text-slate-400">
-                {item.type.replaceAll("_", " ")}
-              </Text>
-            </Pressable>
+            </PressableScale>
           ))
         )}
-      </ScrollView>
-    </SafeAreaView>
+      </ScreenShell>
+    </ScreenSafeTop>
   );
 }

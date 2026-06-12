@@ -1,50 +1,59 @@
 import { router } from "expo-router";
-import { Pressable, ScrollView, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Text, View } from "react-native";
 
 import { EmptyState } from "@/components/ui/Feedback";
+import { FormCard, SubScreenLayout } from "@/components/ui/SubScreenLayout";
+import { useDesignTokens } from "@/hooks/useDesignTokens";
 import { useAnnouncements } from "@/hooks/useHrQueries";
 
-const priorityStyles = {
-  high: "border-rose-200 bg-rose-50",
-  medium: "border-amber-200 bg-amber-50",
-  low: "border-slate-200 bg-white",
-} as const;
-
 export default function AnnouncementsScreen() {
+  const tokens = useDesignTokens();
   const announcements = useAnnouncements();
 
   return (
-    <SafeAreaView className="flex-1 bg-surface-muted" edges={["top"]}>
-      <ScrollView contentContainerClassName="px-5 pb-10 pt-4">
-        <Pressable onPress={() => router.back()} className="mb-4">
-          <Text className="font-semibold text-indigo-600">Back</Text>
-        </Pressable>
-        <Text className="text-3xl font-bold text-slate-900">Announcements</Text>
-        <Text className="mt-1 text-sm text-slate-500">Company updates and priority notices</Text>
+    <SubScreenLayout
+      title="Announcements"
+      subtitle="Company updates and priority notices"
+      onBack={() => router.back()}
+    >
+      {(announcements.data ?? []).length === 0 ? (
+        <EmptyState
+          title="No announcements"
+          description="Important company updates will appear here."
+          icon="megaphone-outline"
+        />
+      ) : (
+        (announcements.data ?? []).map((item) => {
+          const tone =
+            item.priority === "high"
+              ? tokens.dangerSoft
+              : item.priority === "medium"
+                ? tokens.warningSoft
+                : tokens.backgroundElevated;
 
-        {(announcements.data ?? []).length === 0 ? (
-          <View className="mt-8">
-            <EmptyState
-              title="No announcements"
-              description="Important company updates will appear here."
-            />
-          </View>
-        ) : (
-          (announcements.data ?? []).map((item) => (
+          return (
             <View
               key={item.id}
-              className={`mb-4 rounded-3xl border p-5 shadow-premium ${priorityStyles[item.priority]}`}
+              className="mb-4 rounded-3xl p-5"
+              style={{
+                backgroundColor: tone,
+                borderWidth: 1,
+                borderColor: tokens.borderSubtle,
+              }}
             >
-              <Text className="text-xs font-bold uppercase tracking-wide text-slate-500">
+              <Text className="text-xs font-bold uppercase tracking-wider" style={{ color: tokens.textMuted }}>
                 {item.priority} priority
               </Text>
-              <Text className="mt-2 text-xl font-bold text-slate-900">{item.title}</Text>
-              <Text className="mt-3 text-sm leading-6 text-slate-600">{item.body}</Text>
+              <Text className="mt-2 text-xl font-bold" style={{ color: tokens.text }}>
+                {item.title}
+              </Text>
+              <Text className="mt-3 text-sm leading-6" style={{ color: tokens.textSecondary }}>
+                {item.body}
+              </Text>
             </View>
-          ))
-        )}
-      </ScrollView>
-    </SafeAreaView>
+          );
+        })
+      )}
+    </SubScreenLayout>
   );
 }

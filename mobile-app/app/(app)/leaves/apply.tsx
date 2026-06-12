@@ -1,8 +1,9 @@
 import { Controller, useForm } from "react-hook-form";
 import { router } from "expo-router";
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Alert } from "react-native";
 
+import { ChipSelect, FormField, PrimaryButton } from "@/components/ui/FormField";
+import { FormCard, SubScreenLayout } from "@/components/ui/SubScreenLayout";
 import { useSubmitLeave } from "@/hooks/useHrQueries";
 import { validateLeaveDates } from "@/lib/validation";
 import { LEAVE_TYPE_LABELS, type LeaveType } from "@/types/hr";
@@ -51,92 +52,47 @@ export default function ApplyLeaveScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-surface-muted" edges={["top"]}>
-      <ScrollView contentContainerClassName="px-5 pb-10 pt-4">
-        <Pressable onPress={() => router.back()} className="mb-4">
-          <Text className="font-semibold text-indigo-600">Back</Text>
-        </Pressable>
-        <Text className="text-3xl font-bold text-slate-900">Apply Leave</Text>
+    <SubScreenLayout
+      title="Apply Leave"
+      subtitle="Submit a professional leave request for manager approval."
+      onBack={() => router.back()}
+    >
+      <FormCard>
+        <ChipSelect
+          label="Leave Category"
+          options={leaveTypes.map((type) => ({ value: type, label: LEAVE_TYPE_LABELS[type] }))}
+          value={selectedType}
+          onChange={(value) => setValue("leaveType", value)}
+        />
 
-        <View className="mt-6 rounded-3xl bg-white p-5 shadow-premium">
-          <Text className="mb-3 text-sm font-semibold text-slate-700">Leave Category</Text>
-          <View className="mb-4 flex-row flex-wrap gap-2">
-            {leaveTypes.map((type) => (
-              <Pressable
-                key={type}
-                onPress={() => setValue("leaveType", type)}
-                className={`rounded-full px-4 py-2 ${
-                  selectedType === type ? "bg-indigo-600" : "bg-slate-100"
-                }`}
-              >
-                <Text
-                  className={`text-sm font-semibold ${
-                    selectedType === type ? "text-white" : "text-slate-600"
-                  }`}
-                >
-                  {LEAVE_TYPE_LABELS[type]}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+        <Controller
+          control={control}
+          name="startDate"
+          render={({ field: { value, onChange } }) => (
+            <FormField label="Start Date (YYYY-MM-DD)" value={value} onChangeText={onChange} />
+          )}
+        />
+        <Controller
+          control={control}
+          name="endDate"
+          render={({ field: { value, onChange } }) => (
+            <FormField label="End Date (YYYY-MM-DD)" value={value} onChangeText={onChange} />
+          )}
+        />
+        <Controller
+          control={control}
+          name="reason"
+          render={({ field: { value, onChange } }) => (
+            <FormField label="Reason" value={value} onChangeText={onChange} multiline />
+          )}
+        />
 
-          <Controller
-            control={control}
-            name="startDate"
-            render={({ field: { value, onChange } }) => (
-              <Field label="Start Date (YYYY-MM-DD)" value={value} onChangeText={onChange} />
-            )}
-          />
-          <Controller
-            control={control}
-            name="endDate"
-            render={({ field: { value, onChange } }) => (
-              <Field label="End Date (YYYY-MM-DD)" value={value} onChangeText={onChange} />
-            )}
-          />
-          <Controller
-            control={control}
-            name="reason"
-            render={({ field: { value, onChange } }) => (
-              <Field label="Reason" value={value} onChangeText={onChange} multiline />
-            )}
-          />
-
-          <Pressable
-            disabled={submit.isPending}
-            onPress={() => void handleSubmit(onSubmit)()}
-            className={`mt-2 rounded-2xl py-4 ${submit.isPending ? "bg-indigo-400" : "bg-indigo-600"}`}
-          >
-            <Text className="text-center text-base font-bold text-white">
-              {submit.isPending ? "Submitting..." : "Submit Leave Request"}
-            </Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChangeText,
-  multiline,
-}: {
-  label: string;
-  value: string;
-  onChangeText: (value: string) => void;
-  multiline?: boolean;
-}) {
-  return (
-    <View className="mb-4">
-      <Text className="mb-2 text-sm font-semibold text-slate-700">{label}</Text>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        multiline={multiline}
-        className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900"
-      />
-    </View>
+        <PrimaryButton
+          title={submit.isPending ? "Submitting..." : "Submit Leave Request"}
+          loading={submit.isPending}
+          onPress={() => void handleSubmit(onSubmit)()}
+        />
+      </FormCard>
+    </SubScreenLayout>
   );
 }

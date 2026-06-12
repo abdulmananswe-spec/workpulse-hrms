@@ -1,27 +1,56 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Alert, RefreshControl, Text, View } from "react-native";
 
+import { PressableScale } from "@/components/ui/PressableScale";
+import { SectionHeader, Skeleton } from "@/components/ui/Feedback";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { QuickActionCard } from "@/components/ui/QuickActionCard";
-import { Skeleton } from "@/components/ui/Feedback";
+import { ScreenSafeTop, ScreenShell } from "@/components/ui/ScreenShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMonthlyAttendance, useTodayAttendance } from "@/hooks/useHrQueries";
+import { useDesignTokens } from "@/hooks/useDesignTokens";
+import {
+  useCheckInOut,
+  useMonthlyAttendance,
+  useTodayAttendance,
+} from "@/hooks/useHrQueries";
 import { formatTime, getWorkingHours } from "@/lib/format";
 import { getTodayStatusLabel } from "@/services/attendance";
 
 export default function AttendanceScreen() {
   const { profile } = useAuth();
+  const tokens = useDesignTokens();
   const today = useTodayAttendance();
   const month = useMonthlyAttendance();
+  const { checkIn, checkOut, isPending } = useCheckInOut();
   const record = today.data;
   const presentCount = (month.data ?? []).filter((r) => r.check_in_time).length;
 
+  const canCheckIn = !record?.check_in_time && !isPending;
+  const canCheckOut = Boolean(record?.check_in_time) && !record?.check_out_time && !isPending;
+
+  async function handleCheckIn() {
+    try {
+      await checkIn();
+      Alert.alert("Checked In", "Your attendance has been recorded.");
+    } catch (error) {
+      Alert.alert("Check-In Failed", error instanceof Error ? error.message : "Try again.");
+    }
+  }
+
+  async function handleCheckOut() {
+    try {
+      await checkOut();
+      Alert.alert("Checked Out", "Have a great rest of your day.");
+    } catch (error) {
+      Alert.alert("Check-Out Failed", error instanceof Error ? error.message : "Try again.");
+    }
+  }
+
   return (
-    <SafeAreaView className="flex-1 bg-surface-muted" edges={["top"]}>
-      <ScrollView
-        contentContainerClassName="px-5 pb-28 pt-4"
+    <ScreenSafeTop>
+      <ScreenShell
+        contentClassName="px-5 pt-4"
         refreshControl={
           <RefreshControl
             refreshing={today.isRefetching || month.isRefetching}
@@ -32,53 +61,70 @@ export default function AttendanceScreen() {
           />
         }
       >
-        <View className="mb-5 flex-row items-center justify-between">
-          <View>
-            <Text className="text-3xl font-bold text-slate-900">Attendance</Text>
-            <Text className="mt-1 text-sm text-slate-500">Track your daily presence</Text>
-          </View>
-          <Pressable
-            onPress={() => router.push("/(app)/attendance/calendar")}
-            className="rounded-2xl bg-white p-3 shadow-premium"
-          >
-            <Ionicons name="calendar-outline" size={22} color="#4f46e5" />
-          </Pressable>
-        </View>
+        <SectionHeader
+          title="Attendance"
+          subtitle="Track presence, hours, and monthly performance"
+          action={
+            <PressableScale onPress={() => router.push("/(app)/attendance/calendar")}>
+              <View
+                className="h-11 w-11 items-center justify-center rounded-2xl"
+                style={{ backgroundColor: tokens.primarySoft }}
+              >
+                <Ionicons name="calendar-outline" size={22} color={tokens.primary} />
+              </View>
+            </PressableScale>
+          }
+        />
 
         {today.isLoading ? (
-          <Skeleton className="mb-5 h-40" />
+          <Skeleton className="mb-5" height={160} />
         ) : (
           <GlassCard className="mb-5">
-            <Text className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <Text className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: tokens.textMuted }}>
               Current Status
             </Text>
-            <Text className="mt-2 text-2xl font-bold text-slate-900">
+            <Text className="mt-2 text-2xl font-bold tracking-tight" style={{ color: tokens.text }}>
               {getTodayStatusLabel(record ?? null)}
             </Text>
-            <View className="mt-5 flex-row flex-wrap gap-4">
+            <View className="mt-5 flex-row flex-wrap gap-y-4">
               <Metric label="Check-In" value={formatTime(record?.check_in_time ?? null)} />
               <Metric label="Check-Out" value={formatTime(record?.check_out_time ?? null)} />
               <Metric
                 label="Working Hours"
                 value={getWorkingHours(record?.check_in_time ?? null, record?.check_out_time ?? null)}
               />
-              <Metric
-                label="Location"
-                value={profile?.branch?.name ? "Branch Assigned" : "Not Assigned"}
-              />
+              <Metric label="Branch" value={profile?.branch?.name ?? "Not assigned"} />
             </View>
           </GlassCard>
         )}
 
-        <GlassCard className="mb-5">
-          <Text className="text-lg font-bold text-slate-900">Monthly Summary</Text>
-          <Text className="mt-2 text-sm text-slate-500">
-            {presentCount} present days recorded this month.
+        <QuickActionCard
+          title={isPending ? "Processing..." : "Check In Now"}
+          subtitle="Verify location and start your workday"
+          icon="log-in-outline"
+          onPress={() => void handleCheckIn()}
+          disabled={!canCheckIn}
+        />
+        <QuickActionCard
+          title={isPending ? "Processing..." : "Check Out Now"}
+          subtitle="Securely end your shift"
+          icon="log-out-outline"
+          colors={["#0F766E", "#14B8A6"]}
+          onPress={() => void handleCheckOut()}
+          disabled={!canCheckOut}
+        />
+
+        <GlassCard className="mb-6 mt-2">
+          <Text className="text-lg font-bold" style={{ color: tokens.text }}>
+            Monthly Summary
+          </Text>
+          <Text className="mt-2 text-sm leading-5" style={{ color: tokens.textSecondary }}>
+            {presentCount} present days recorded this month. Keep your streak going.
           </Text>
         </GlassCard>
 
         <QuickActionCard
-          title="Open Calendar"
+          title="Attendance Calendar"
           subtitle="View present, absent, and leave days"
           icon="grid-outline"
           onPress={() => router.push("/(app)/attendance/calendar")}
@@ -87,19 +133,24 @@ export default function AttendanceScreen() {
           title="Request Correction"
           subtitle="Fix missed attendance entries"
           icon="create-outline"
-          colors={["#ea580c", "#f97316"]}
+          colors={["#C2410C", "#F97316"]}
           onPress={() => router.push("/(app)/attendance/correction")}
         />
-      </ScrollView>
-    </SafeAreaView>
+      </ScreenShell>
+    </ScreenSafeTop>
   );
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
+  const tokens = useDesignTokens();
   return (
-    <View className="min-w-[45%]">
-      <Text className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</Text>
-      <Text className="mt-1 text-base font-semibold text-slate-900">{value}</Text>
+    <View className="min-w-[48%] pr-3">
+      <Text className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: tokens.textMuted }}>
+        {label}
+      </Text>
+      <Text className="mt-1 text-base font-semibold" style={{ color: tokens.text }}>
+        {value}
+      </Text>
     </View>
   );
 }
