@@ -18,6 +18,7 @@ export type LeaveRequestRow = {
     email: string;
     employee_code: string | null;
     designation: string | null;
+    avatar_url: string | null;
   } | null;
 };
 
@@ -52,7 +53,8 @@ export async function fetchLeaveRequests(
           full_name,
           email,
           employee_code,
-          designation
+          designation,
+          avatar_url
         )
       `,
     )

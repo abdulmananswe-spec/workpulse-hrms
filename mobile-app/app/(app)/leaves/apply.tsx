@@ -4,8 +4,10 @@ import { Alert } from "react-native";
 
 import { ChipSelect, FormField, PrimaryButton } from "@/components/ui/FormField";
 import { FormCard, SubScreenLayout } from "@/components/ui/SubScreenLayout";
+import { useAuth } from "@/contexts/AuthContext";
 import { useSubmitLeave } from "@/hooks/useHrQueries";
 import { validateLeaveDates } from "@/lib/validation";
+import { validateLeaveRequestForEmployee } from "@/services/leave-validation";
 import { LEAVE_TYPE_LABELS, type LeaveType } from "@/types/hr";
 
 type FormValues = {
@@ -18,6 +20,7 @@ type FormValues = {
 const leaveTypes = Object.keys(LEAVE_TYPE_LABELS) as LeaveType[];
 
 export default function ApplyLeaveScreen() {
+  const { profile } = useAuth();
   const submit = useSubmitLeave();
   const { control, handleSubmit, watch, setValue } = useForm<FormValues>({
     defaultValues: {
@@ -34,6 +37,30 @@ export default function ApplyLeaveScreen() {
     const dateError = validateLeaveDates(values.startDate, values.endDate);
     if (dateError) {
       Alert.alert("Invalid dates", dateError);
+      return;
+    }
+
+    if (!profile?.id) {
+      Alert.alert("Error", "Your session has expired. Please sign in again.");
+      return;
+    }
+
+    try {
+      const businessRuleError = await validateLeaveRequestForEmployee({
+        employeeId: profile.id,
+        startDate: values.startDate,
+        endDate: values.endDate,
+      });
+
+      if (businessRuleError) {
+        Alert.alert("Leave not allowed", businessRuleError);
+        return;
+      }
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        error instanceof Error ? error.message : "Unable to validate leave request.",
+      );
       return;
     }
 

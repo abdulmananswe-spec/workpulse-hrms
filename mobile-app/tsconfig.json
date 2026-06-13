@@ -6,6 +6,9 @@
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "@shared/leave-validation": [
+        "../shared/leave-validation/index.ts"
       ]
     }
   },

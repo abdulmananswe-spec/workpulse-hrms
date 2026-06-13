@@ -10,6 +10,7 @@ export type AdminAttendanceRow = {
   employeeId: string;
   employeeName: string;
   employeeCode: string | null;
+  employeeAvatarUrl: string | null;
   checkInTime: string | null;
   checkOutTime: string | null;
   status: AttendanceStatus;
@@ -32,7 +33,7 @@ export async function fetchAdminAttendanceData(dateInput?: string) {
     await Promise.all([
       supabase
         .from("profiles")
-        .select("id, full_name, employee_code, is_active")
+        .select("id, full_name, employee_code, avatar_url, is_active")
         .eq("role", "employee")
         .eq("is_active", true)
         .order("full_name"),
@@ -70,6 +71,7 @@ export async function fetchAdminAttendanceData(dateInput?: string) {
       employeeId: employee.id,
       employeeName: employee.full_name,
       employeeCode: employee.employee_code,
+      employeeAvatarUrl: employee.avatar_url,
       checkInTime: record?.check_in_time ?? null,
       checkOutTime: record?.check_out_time ?? null,
       status: record?.status ?? "absent",

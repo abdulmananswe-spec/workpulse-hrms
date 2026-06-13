@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
@@ -46,9 +47,11 @@ export function AttendanceDashboard({
         header: "Employee",
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-              {row.original.employeeName.charAt(0)}
-            </div>
+            <UserAvatar
+              name={row.original.employeeName}
+              imageUrl={row.original.employeeAvatarUrl}
+              size="sm"
+            />
             <div>
               <p className="font-medium">{row.original.employeeName}</p>
               <p className="text-xs text-muted-foreground">

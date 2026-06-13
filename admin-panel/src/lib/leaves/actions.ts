@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { requireAdminAction } from "@/lib/auth/guard";
 import { calculateLeaveDays, LEAVE_TYPE_LABELS, type LeaveType } from "@/lib/leaves/utils";
+import { assertLeaveCanBeApproved } from "@/lib/leaves/validation";
 import { createAdminNotification } from "@/lib/notifications/actions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAuthenticatedAdminProfile } from "@/lib/auth/server";
@@ -90,6 +91,8 @@ export async function approveLeaveAction(
   if (!request) {
     throw new Error("Leave request not found or already processed.");
   }
+
+  await assertLeaveCanBeApproved(adminClient, request);
 
   const remarks = adminRemarks?.trim() || null;
   const now = new Date().toISOString();

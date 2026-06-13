@@ -1,3 +1,8 @@
+import {
+  LEAVE_VALIDATION_ERRORS,
+  validateLeaveRequest,
+} from "@shared/leave-validation";
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function isValidEmail(value: string): boolean {
@@ -5,18 +10,15 @@ export function isValidEmail(value: string): boolean {
 }
 
 export function validateLeaveDates(startDate: string, endDate: string): string | null {
-  if (!startDate || !endDate) {
-    return "Start and end dates are required.";
-  }
-
-  if (endDate < startDate) {
-    return "End date must be on or after start date.";
-  }
-
   const today = new Date().toISOString().slice(0, 10);
-  if (startDate < today) {
-    return "Leave cannot start in the past.";
-  }
 
-  return null;
+  return validateLeaveRequest({
+    startDate,
+    endDate,
+    today,
+    attendanceDateKeys: [],
+    existingLeaves: [],
+  });
 }
+
+export { LEAVE_VALIDATION_ERRORS };

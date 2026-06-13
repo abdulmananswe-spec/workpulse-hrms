@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { EmployeeAvatarUpload } from "@/components/employees/EmployeeAvatarUpload";
 import { Badge } from "@/components/ui/badge";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -19,6 +21,10 @@ import {
   updateEmployeeAction,
   type EmployeeFormInput,
 } from "@/lib/employees/actions";
+import {
+  removeEmployeeAvatarAction,
+  uploadEmployeeAvatarAction,
+} from "@/lib/employees/avatar-actions";
 import type { BranchSummary, EmployeeRow } from "@/lib/employees/queries";
 import { toast } from "sonner";
 
@@ -60,6 +66,62 @@ export function EmployeeManagement({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [credentials, setCredentials] = useState<CredentialsState | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [pendingPhotoFile, setPendingPhotoFile] = useState<File | null>(null);
+  const [removePhoto, setRemovePhoto] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  function resetPhotoState(avatarUrl: string | null = null) {
+    setPhotoPreview(avatarUrl);
+    setPendingPhotoFile(null);
+    setRemovePhoto(false);
+    setPhotoUploading(false);
+    setUploadProgress(0);
+  }
+
+  function handlePhotoSelect(file: File) {
+    const allowed = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      toast.error("Only JPG, JPEG, PNG, and WEBP images are allowed.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be 5 MB or smaller.");
+      return;
+    }
+    setPendingPhotoFile(file);
+    setRemovePhoto(false);
+    setPhotoPreview(URL.createObjectURL(file));
+  }
+
+  function handlePhotoRemove() {
+    setPendingPhotoFile(null);
+    setRemovePhoto(true);
+    setPhotoPreview(null);
+  }
+
+  async function syncEmployeePhoto(employeeId: string) {
+    if (pendingPhotoFile) {
+      setPhotoUploading(true);
+      setUploadProgress(20);
+      const formData = new FormData();
+      formData.set("avatar", pendingPhotoFile);
+      setUploadProgress(55);
+      await uploadEmployeeAvatarAction(employeeId, formData);
+      setUploadProgress(100);
+      setPhotoUploading(false);
+      return;
+    }
+
+    if (removePhoto) {
+      setPhotoUploading(true);
+      setUploadProgress(30);
+      await removeEmployeeAvatarAction(employeeId);
+      setUploadProgress(100);
+      setPhotoUploading(false);
+    }
+  }
 
   const filteredEmployees = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -87,6 +149,7 @@ export function EmployeeManagement({
     setEditingEmployee(null);
     setForm(emptyForm);
     setError(null);
+    resetPhotoState(null);
     setFormOpen(true);
   }
 
@@ -102,6 +165,7 @@ export function EmployeeManagement({
       is_active: employee.is_active,
     });
     setError(null);
+    resetPhotoState(employee.avatar_url);
     setFormOpen(true);
   }
 
@@ -113,12 +177,16 @@ export function EmployeeManagement({
     try {
       if (editingEmployee) {
         await updateEmployeeAction(editingEmployee.id, form);
+        await syncEmployeePhoto(editingEmployee.id);
         setFormOpen(false);
+        resetPhotoState(null);
         toast.success(`${form.full_name} has been updated.`);
         router.refresh();
       } else {
         const result = await createEmployeeAction(form);
+        await syncEmployeePhoto(result.employeeId);
         setFormOpen(false);
+        resetPhotoState(null);
         setCredentials({
           title: "Employee Created",
           email: result.email,
@@ -243,9 +311,11 @@ export function EmployeeManagement({
             className="rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           >
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary">
-                {employee.full_name.charAt(0)}
-              </div>
+              <UserAvatar
+                name={employee.full_name}
+                imageUrl={employee.avatar_url}
+                size="lg"
+              />
               <div>
                 <p className="font-semibold text-foreground">{employee.full_name}</p>
                 <p className="text-sm text-muted-foreground">
@@ -301,18 +371,27 @@ export function EmployeeManagement({
                 filteredEmployees.map((employee) => (
                   <tr key={employee.id} className="hover:bg-slate-50/70">
                     <td className="px-4 py-4">
-                      <Link
-                        href={`/dashboard/employees/${employee.id}`}
-                        className="font-medium text-foreground hover:text-primary"
-                      >
-                        {employee.full_name}
-                      </Link>
-                      <div className="text-muted-foreground">{employee.email}</div>
-                      {employee.phone ? (
-                        <div className="text-xs text-muted-foreground">
-                          {employee.phone}
+                      <div className="flex items-center gap-3">
+                        <UserAvatar
+                          name={employee.full_name}
+                          imageUrl={employee.avatar_url}
+                          size="md"
+                        />
+                        <div>
+                          <Link
+                            href={`/dashboard/employees/${employee.id}`}
+                            className="font-medium text-foreground hover:text-primary"
+                          >
+                            {employee.full_name}
+                          </Link>
+                          <div className="text-muted-foreground">{employee.email}</div>
+                          {employee.phone ? (
+                            <div className="text-xs text-muted-foreground">
+                              {employee.phone}
+                            </div>
+                          ) : null}
                         </div>
-                      ) : null}
+                      </div>
                     </td>
                     <td className="px-4 py-4">{employee.employee_code ?? "—"}</td>
                     <td className="px-4 py-4">{employee.designation ?? "—"}</td>
@@ -375,6 +454,16 @@ export function EmployeeManagement({
         }
       >
         <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
+          <EmployeeAvatarUpload
+            fullName={form.full_name || "Employee"}
+            previewUrl={photoPreview}
+            disabled={isSubmitting}
+            uploading={photoUploading}
+            uploadProgress={uploadProgress}
+            onFileSelect={handlePhotoSelect}
+            onRemove={handlePhotoRemove}
+          />
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="full_name">Full Name</Label>
@@ -492,8 +581,8 @@ export function EmployeeManagement({
             <Button type="button" variant="outline" onClick={() => setFormOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting
+            <Button type="submit" disabled={isSubmitting || photoUploading}>
+              {isSubmitting || photoUploading
                 ? "Saving..."
                 : editingEmployee
                   ? "Save Changes"

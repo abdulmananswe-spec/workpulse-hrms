@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { validateLeaveRequestForEmployee } from "@/services/leave-validation";
 import type {
   AttendanceStats,
   Achievement,
@@ -143,6 +144,16 @@ export async function submitLeaveRequest(input: {
   endDate: string;
   reason: string;
 }): Promise<void> {
+  const validationError = await validateLeaveRequestForEmployee({
+    employeeId: input.employeeId,
+    startDate: input.startDate,
+    endDate: input.endDate,
+  });
+
+  if (validationError) {
+    throw new Error(validationError);
+  }
+
   const { error } = await supabase.from("leave_requests").insert({
     employee_id: input.employeeId,
     leave_type: input.leaveType,

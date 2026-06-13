@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { requireAdminAction } from "@/lib/auth/guard";
+import { deleteEmployeePhotoStorageAction } from "@/lib/employees/avatar-actions";
 import { generateTemporaryPassword } from "@/lib/employees/password";
 import { createAdminNotification } from "@/lib/notifications/actions";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -36,9 +37,13 @@ function normalizeEmployeeInput(input: EmployeeFormInput) {
   };
 }
 
-function revalidateEmployeePages() {
+function revalidateEmployeePages(employeeId?: string) {
   revalidatePath("/dashboard/employees");
   revalidatePath("/dashboard/attendance");
+  revalidatePath("/dashboard/leaves");
+  if (employeeId) {
+    revalidatePath(`/dashboard/employees/${employeeId}`);
+  }
 }
 
 export async function createEmployeeAction(
@@ -91,7 +96,7 @@ export async function createEmployeeAction(
     throw new Error(profileError.message);
   }
 
-  revalidateEmployeePages();
+  revalidateEmployeePages(createdUser.user.id);
 
   await createAdminNotification({
     title: "New employee added",
@@ -160,7 +165,7 @@ export async function updateEmployeeAction(
     }
   }
 
-  revalidateEmployeePages();
+  revalidateEmployeePages(employeeId);
 }
 
 export async function setEmployeeActiveAction(
@@ -197,7 +202,7 @@ export async function setEmployeeActiveAction(
     throw new Error(authError.message);
   }
 
-  revalidateEmployeePages();
+  revalidateEmployeePages(employeeId);
 }
 
 export async function deleteEmployeeAction(employeeId: string): Promise<void> {
@@ -226,7 +231,9 @@ export async function deleteEmployeeAction(employeeId: string): Promise<void> {
     throw new Error(authDeleteError.message);
   }
 
-  revalidateEmployeePages();
+  await deleteEmployeePhotoStorageAction(employeeId);
+
+  revalidateEmployeePages(employeeId);
 }
 
 export async function resetEmployeePasswordAction(

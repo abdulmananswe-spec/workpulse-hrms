@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatTime } from "@/lib/attendance/utils";
 import type { EmployeeRow } from "@/lib/employees/queries";
@@ -64,7 +65,20 @@ export function EmployeeProfileView({
             <CardHeader>
               <CardTitle className="text-base">Profile</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
+            <CardContent className="space-y-4 text-sm">
+              <div className="flex items-center gap-3">
+                <UserAvatar
+                  name={employee.full_name}
+                  imageUrl={employee.avatar_url}
+                  size="lg"
+                />
+                <div>
+                  <p className="font-medium text-foreground">{employee.full_name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {employee.avatar_url ? "Photo on file" : "Initials avatar"}
+                  </p>
+                </div>
+              </div>
               <p>
                 <span className="text-muted-foreground">Designation:</span>{" "}
                 {employee.designation ?? "—"}

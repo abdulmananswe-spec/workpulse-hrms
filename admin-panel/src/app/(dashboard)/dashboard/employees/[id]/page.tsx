@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { EmployeeProfileView } from "@/components/employees/EmployeeProfileView";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { fetchEmployeeById } from "@/lib/employees/queries";
 import { createClient } from "@/lib/supabase/server";
 
@@ -41,14 +42,22 @@ export default async function EmployeeProfilePage({ params }: EmployeeProfilePag
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href="/dashboard/employees" className="text-sm font-medium text-primary">
-          ← Back to directory
-        </Link>
-        <h2 className="mt-2 text-2xl font-bold tracking-tight text-foreground">
-          {employee.full_name}
-        </h2>
-        <p className="text-sm text-muted-foreground">{employee.email}</p>
+      <div className="flex items-center gap-4">
+        <UserAvatar
+          name={employee.full_name}
+          imageUrl={employee.avatar_url}
+          size="xl"
+          showStatus={employee.is_active}
+        />
+        <div>
+          <Link href="/dashboard/employees" className="text-sm font-medium text-primary">
+            ← Back to directory
+          </Link>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-foreground">
+            {employee.full_name}
+          </h2>
+          <p className="text-sm text-muted-foreground">{employee.email}</p>
+        </div>
       </div>
 
       <EmployeeProfileView

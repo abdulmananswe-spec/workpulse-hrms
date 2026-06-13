@@ -233,6 +233,7 @@ export interface Database {
           duty_start_time: string;
           duty_end_time: string;
           late_grace_minutes: number;
+          timezone: string;
           updated_at: string;
           updated_by: string | null;
         };
@@ -242,6 +243,7 @@ export interface Database {
           duty_start_time?: string;
           duty_end_time?: string;
           late_grace_minutes?: number;
+          timezone?: string;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -251,6 +253,7 @@ export interface Database {
           duty_start_time?: string;
           duty_end_time?: string;
           late_grace_minutes?: number;
+          timezone?: string;
           updated_at?: string;
           updated_by?: string | null;
         };
