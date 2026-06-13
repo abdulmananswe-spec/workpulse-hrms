@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -80,18 +80,20 @@ jobs:
           echo "Supabase secrets present."
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile-app/package-lock.json
 
       - name: Setup Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Accept Android SDK licenses
         run: yes | sdkmanager --licenses
@@ -154,7 +156,7 @@ jobs:
           fi
 
       - name: Cache Gradle
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -189,7 +191,7 @@ jobs:
           echo "APK signature verified with $APKSIGNER"
 
       - name: Upload release APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: workpulse-hrms-apk
           path: mobile-app/android/app/build/outputs/apk/release/app-release.apk

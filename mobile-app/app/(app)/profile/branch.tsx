@@ -1,11 +1,27 @@
-import MapView, { Circle, Marker } from "react-native-maps";
 import { router } from "expo-router";
 import { Text, View } from "react-native";
 
+import { BranchLocationMap } from "@/components/branch/BranchLocationMap";
 import { FormCard, SubScreenLayout } from "@/components/ui/SubScreenLayout";
 import { StatusBadge } from "@/components/ui/Feedback";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDesignTokens } from "@/hooks/useDesignTokens";
+import { parseBranchCoordinates } from "@/lib/branch-coordinates";
+
+const UNCONFIGURED_BRANCH_MESSAGE =
+  "Branch location has not been configured yet. Please contact your administrator.";
+
+function BranchUnavailableState({ message }: { message: string }) {
+  const tokens = useDesignTokens();
+
+  return (
+    <FormCard>
+      <Text className="text-base leading-6" style={{ color: tokens.textSecondary }}>
+        {message}
+      </Text>
+    </FormCard>
+  );
+}
 
 export default function BranchScreen() {
   const { profile } = useAuth();
@@ -19,17 +35,16 @@ export default function BranchScreen() {
         subtitle="Contact your administrator for branch assignment."
         onBack={() => router.back()}
       >
-        <FormCard>
-          <Text className="text-base leading-6" style={{ color: tokens.textSecondary }}>
-            No branch is assigned to your profile yet.
-          </Text>
-        </FormCard>
+        <BranchUnavailableState message="No branch is assigned to your profile yet." />
       </SubScreenLayout>
     );
   }
 
-  const latitude = Number(branch.latitude);
-  const longitude = Number(branch.longitude);
+  const coordinates = parseBranchCoordinates({
+    latitude: branch.latitude,
+    longitude: branch.longitude,
+    radiusMeters: branch.radius_meters,
+  });
 
   return (
     <SubScreenLayout
@@ -42,35 +57,26 @@ export default function BranchScreen() {
           <Text className="text-xl font-bold" style={{ color: tokens.text }}>
             {branch.name}
           </Text>
-          <StatusBadge label={branch.is_active ? "Active" : "Inactive"} tone={branch.is_active ? "success" : "danger"} />
+          <StatusBadge
+            label={branch.is_active ? "Active" : "Inactive"}
+            tone={branch.is_active ? "success" : "danger"}
+          />
         </View>
         <Text className="text-sm leading-6" style={{ color: tokens.textSecondary }}>
           {branch.address ?? "No address provided"}
         </Text>
         <Text className="mt-4 text-sm" style={{ color: tokens.textSecondary }}>
-          Geofence radius: {branch.radius_meters} meters
+          Geofence radius: {branch.radius_meters ?? "—"} meters
         </Text>
       </FormCard>
 
-      <View className="mt-6 h-72 overflow-hidden rounded-3xl" style={{ borderWidth: 1, borderColor: tokens.borderSubtle }}>
-        <MapView
-          style={{ flex: 1 }}
-          initialRegion={{
-            latitude,
-            longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }}
-        >
-          <Marker coordinate={{ latitude, longitude }} title={branch.name} />
-          <Circle
-            center={{ latitude, longitude }}
-            radius={branch.radius_meters}
-            strokeColor="rgba(79, 70, 229, 0.8)"
-            fillColor="rgba(79, 70, 229, 0.15)"
-          />
-        </MapView>
-      </View>
+      {coordinates ? (
+        <BranchLocationMap branchName={branch.name} coordinates={coordinates} />
+      ) : (
+        <View className="mt-6">
+          <BranchUnavailableState message={UNCONFIGURED_BRANCH_MESSAGE} />
+        </View>
+      )}
     </SubScreenLayout>
   );
 }
