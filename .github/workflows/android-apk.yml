@@ -1,12 +1,14 @@
 name: Android APK
 
+# Official release build pipeline — runs entirely on GitHub Actions.
+# Does NOT use EAS Build or Expo cloud build services.
+# Steps: checkout → npm ci → expo prebuild (local codegen) → Gradle assembleRelease → upload artifact
+
 on:
   push:
     branches: [main, master]
-    paths:
-      - "mobile-app/**"
-      - ".github/workflows/android-apk.yml"
   pull_request:
+    branches: [main, master]
     paths:
       - "mobile-app/**"
       - ".github/workflows/android-apk.yml"
@@ -20,8 +22,8 @@ env:
   EXPO_APP_DIR: mobile-app
 
 jobs:
-  build-debug-apk:
-    name: Build Debug APK
+  build-release-apk:
+    name: Build Release APK
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -39,8 +41,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          # mobile-app is registered as a git submodule in this repo but .gitmodules
-          # is missing, so a plain checkout leaves the folder empty on GitHub Actions.
           if [ ! -f "${EXPO_APP_DIR}/package.json" ]; then
             if git ls-tree HEAD "${EXPO_APP_DIR}" 2>/dev/null | grep -q "160000 commit"; then
               echo "Detected git submodule pointer for ${EXPO_APP_DIR}; attempting init..."
@@ -50,27 +50,34 @@ jobs:
 
           if [ ! -f "${EXPO_APP_DIR}/package.json" ] || [ ! -f "${EXPO_APP_DIR}/app.json" ]; then
             echo "::error::Expo project not found at ${EXPO_APP_DIR}/"
-            echo ""
-            echo "This monorepo expects the Expo app at: ${EXPO_APP_DIR}/package.json"
-            echo "Checkout left an empty or missing folder — usually a broken git submodule."
-            echo ""
-            echo "Fix locally, then push:"
-            echo "  git rm --cached ${EXPO_APP_DIR}"
-            echo "  git add ${EXPO_APP_DIR}/"
-            echo "  git commit -m \"Track mobile-app as regular directory\""
-            echo "  git push"
-            echo ""
-            echo "Repository root listing:"
-            ls -la
-            if [ -d "${EXPO_APP_DIR}" ]; then
-              echo ""
-              echo "${EXPO_APP_DIR}/ listing:"
-              ls -la "${EXPO_APP_DIR}"
-            fi
             exit 1
           fi
 
           echo "Expo project verified at ${EXPO_APP_DIR}/"
+
+      - name: Validate Supabase secrets
+        if: github.event_name != 'pull_request'
+        run: |
+          set -euo pipefail
+          missing=0
+          if [ -z "${EXPO_PUBLIC_SUPABASE_URL:-}" ]; then
+            echo "::error::Missing repository secret EXPO_PUBLIC_SUPABASE_URL"
+            missing=1
+          fi
+          if [ -z "${EXPO_PUBLIC_SUPABASE_ANON_KEY:-}" ]; then
+            echo "::error::Missing repository secret EXPO_PUBLIC_SUPABASE_ANON_KEY"
+            missing=1
+          fi
+          if [ "$missing" -ne 0 ]; then
+            echo ""
+            echo "Add secrets under Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+          if [[ "${EXPO_PUBLIC_SUPABASE_URL}" == *"placeholder"* ]] || [[ "${EXPO_PUBLIC_SUPABASE_ANON_KEY}" == *"placeholder"* ]]; then
+            echo "::error::Supabase secrets must be real production values, not placeholders."
+            exit 1
+          fi
+          echo "Supabase secrets present."
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -93,8 +100,8 @@ jobs:
         run: |
           sdkmanager \
             "platform-tools" \
-            "platforms;android-35" \
-            "build-tools;35.0.0"
+            "build-tools;35.0.0" \
+            "platforms;android-35"
 
       - name: Install npm dependencies
         working-directory: mobile-app
@@ -109,14 +116,42 @@ jobs:
       - name: Write .env for Expo bundle
         working-directory: mobile-app
         run: |
-          {
-            echo "EXPO_PUBLIC_SUPABASE_URL=${EXPO_PUBLIC_SUPABASE_URL:-https://placeholder.supabase.co}"
-            echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=${EXPO_PUBLIC_SUPABASE_ANON_KEY:-placeholder-anon-key}"
-          } > .env
+          set -euo pipefail
+          if [ -z "${EXPO_PUBLIC_SUPABASE_URL:-}" ] || [ -z "${EXPO_PUBLIC_SUPABASE_ANON_KEY:-}" ]; then
+            echo "EXPO_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co" > .env
+            echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=placeholder-anon-key" >> .env
+            echo "::warning::Using placeholder Supabase env for PR build."
+          else
+            {
+              echo "EXPO_PUBLIC_SUPABASE_URL=${EXPO_PUBLIC_SUPABASE_URL}"
+              echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=${EXPO_PUBLIC_SUPABASE_ANON_KEY}"
+            } > .env
+          fi
 
-      - name: Expo prebuild (Android)
+      - name: Expo prebuild (Android, local codegen only)
         working-directory: mobile-app
         run: npm exec expo prebuild -- --platform android --no-install
+
+      - name: Configure release keystore (optional)
+        working-directory: mobile-app/android
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ]; then
+            echo "${ANDROID_KEYSTORE_BASE64}" | base64 -d > release.keystore
+            cat > keystore.properties <<EOF
+          storeFile=release.keystore
+          storePassword=${ANDROID_KEYSTORE_PASSWORD}
+          keyAlias=${ANDROID_KEY_ALIAS}
+          keyPassword=${ANDROID_KEY_PASSWORD}
+          EOF
+            echo "Release keystore configured from GitHub secrets."
+          else
+            echo "No ANDROID_KEYSTORE_BASE64 secret — release build will use debug keystore (fine for client testing)."
+          fi
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -133,22 +168,42 @@ jobs:
         working-directory: mobile-app/android
         run: chmod +x gradlew && ./gradlew assembleRelease --no-daemon --stacktrace -PreactNativeArchitectures=arm64-v8a
 
-      - name: Upload debug APK artifact
+      - name: Verify APK signature
+        working-directory: mobile-app/android
+        run: |
+          APK="app/build/outputs/apk/release/app-release.apk"
+          if [ ! -f "$APK" ]; then
+            echo "::error::APK not found at $APK"
+            exit 1
+          fi
+          apksigner verify --verbose "$APK"
+          echo "APK signature verified."
+
+      - name: Upload release APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: workpulse-hrms-debug-apk
+          name: workpulse-hrms-apk
           path: mobile-app/android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
           if-no-files-found: error
 
       - name: Build summary
         working-directory: mobile-app
+        env:
+          HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
         run: |
           APK="android/app/build/outputs/apk/release/app-release.apk"
-          echo "## WorkPulse HRMS Debug APK" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${HAS_KEYSTORE}" = "true" ]; then
+            SIGNING="Release keystore (ANDROID_KEYSTORE_BASE64 secret)"
+          else
+            SIGNING="Debug keystore (suitable for sideload testing)"
+          fi
+          echo "## WorkPulse HRMS — GitHub Actions APK" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Build system:** GitHub Actions only (no EAS Build)" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Expo project:** \`mobile-app/\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Package:** \`com.workpulse.hrms\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Commit:** \`${GITHUB_SHA::7}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Signing:** ${SIGNING}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **APK size:** $(du -h "$APK" | cut -f1)" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Download:** Actions → this workflow run → Artifacts → \`workpulse-hrms-debug-apk\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Download:** Actions → this workflow run → Artifacts → \`workpulse-hrms-apk\`" >> "$GITHUB_STEP_SUMMARY"
