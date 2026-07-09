@@ -9,6 +9,9 @@
       ],
       "@shared/leave-validation": [
         "../shared/leave-validation/index.ts"
+      ],
+      "@shared/duty-hours": [
+        "../shared/duty-hours/index.ts"
       ]
     }
   },

@@ -24,6 +24,13 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
     };
   }
 
+  if (moduleName === "@shared/duty-hours") {
+    return {
+      type: "sourceFile",
+      filePath: path.resolve(monorepoRoot, "shared/duty-hours/index.ts"),
+    };
+  }
+
   if (defaultResolveRequest) {
     return defaultResolveRequest(context, moduleName, platform);
   }

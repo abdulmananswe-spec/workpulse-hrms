@@ -6,7 +6,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { ProfileAvatarUpload } from "@/components/profile/ProfileAvatarUpload";
-import { DutyHoursForm } from "@/components/settings/DutyHoursForm";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -112,15 +111,6 @@ export function SettingsPanel({ settings, profile }: SettingsPanelProps) {
           >
             {saving ? "Saving..." : "Save Company Settings"}
           </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Duty Hours & Attendance</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DutyHoursForm settings={settings} />
         </CardContent>
       </Card>
 

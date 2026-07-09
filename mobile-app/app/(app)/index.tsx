@@ -17,7 +17,7 @@ import { useLiveClock } from "@/hooks/useLiveClock";
 import {
   useAttendanceStats,
   useCheckInOut,
-  useOrgSettings,
+  useEmployeeDutyHours,
   formatDutyTime,
   useTodayAttendance,
 } from "@/hooks/useHrQueries";
@@ -31,7 +31,7 @@ export default function HomeScreen() {
   const { time, date } = useLiveClock();
   const statsQuery = useAttendanceStats();
   const todayQuery = useTodayAttendance();
-  const orgSettings = useOrgSettings();
+  const dutyHours = useEmployeeDutyHours();
   const { checkIn, checkOut, isPending: isAttendancePending } = useCheckInOut();
 
   const statusLabel = getTodayStatusLabel(todayQuery.data ?? null);
@@ -183,13 +183,13 @@ export default function HomeScreen() {
         </View>
 
         <View className="px-5">
-          {orgSettings.data ? (
+          {dutyHours.data ? (
             <GlassCard className="mb-5">
               <Text className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: tokens.textMuted }}>
                 Shift Window
               </Text>
               <Text className="mt-1 text-base font-semibold" style={{ color: tokens.text }}>
-                {formatDutyTime(orgSettings.data.duty_start_time)} – {formatDutyTime(orgSettings.data.duty_end_time)}
+                {formatDutyTime(dutyHours.data.duty_start_time)} – {formatDutyTime(dutyHours.data.duty_end_time)}
               </Text>
             </GlassCard>
           ) : null}

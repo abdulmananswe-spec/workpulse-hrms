@@ -8,6 +8,7 @@ import { generateTemporaryPassword } from "@/lib/employees/password";
 import { createAdminNotification } from "@/lib/notifications/actions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeDutyHoursInput } from "@shared/duty-hours";
 
 export type EmployeeFormInput = {
   full_name: string;
@@ -17,6 +18,9 @@ export type EmployeeFormInput = {
   designation?: string;
   branch_id?: string | null;
   is_active?: boolean;
+  duty_start_time: string;
+  duty_end_time: string;
+  late_grace_minutes: number;
 };
 
 export type CreateEmployeeResult = {
@@ -26,6 +30,12 @@ export type CreateEmployeeResult = {
 };
 
 function normalizeEmployeeInput(input: EmployeeFormInput) {
+  const dutyHours = normalizeDutyHoursInput({
+    duty_start_time: input.duty_start_time,
+    duty_end_time: input.duty_end_time,
+    late_grace_minutes: input.late_grace_minutes,
+  });
+
   return {
     full_name: input.full_name.trim(),
     email: input.email.trim().toLowerCase(),
@@ -34,6 +44,7 @@ function normalizeEmployeeInput(input: EmployeeFormInput) {
     designation: input.designation?.trim() || null,
     branch_id: input.branch_id || null,
     is_active: input.is_active ?? true,
+    ...dutyHours,
   };
 }
 
@@ -87,6 +98,9 @@ export async function createEmployeeAction(
       designation: employee.designation,
       branch_id: employee.branch_id,
       is_active: employee.is_active,
+      duty_start_time: employee.duty_start_time,
+      duty_end_time: employee.duty_end_time,
+      late_grace_minutes: employee.late_grace_minutes,
       role: "employee",
     })
     .eq("id", createdUser.user.id);
@@ -136,6 +150,9 @@ export async function updateEmployeeAction(
       designation: employee.designation,
       branch_id: employee.branch_id,
       is_active: employee.is_active,
+      duty_start_time: employee.duty_start_time,
+      duty_end_time: employee.duty_end_time,
+      late_grace_minutes: employee.late_grace_minutes,
     })
     .eq("id", employeeId)
     .eq("role", "employee")

@@ -27,13 +27,16 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from "@/services/notifications";
-import { fetchOrgSettings, formatDutyTime } from "@/services/orgSettings";
+import { fetchEmployeeDutyHours, formatDutyTime } from "@/services/dutyHours";
 import type { LeaveType, CorrectionType } from "@/types/hr";
 
-export function useOrgSettings() {
+export function useEmployeeDutyHours() {
+  const { profile } = useAuth();
+
   return useQuery({
-    queryKey: ["org-settings"],
-    queryFn: fetchOrgSettings,
+    queryKey: ["employee-duty-hours", profile?.id],
+    queryFn: () => fetchEmployeeDutyHours(profile!.id),
+    enabled: Boolean(profile?.id),
     staleTime: 5 * 60_000,
   });
 }

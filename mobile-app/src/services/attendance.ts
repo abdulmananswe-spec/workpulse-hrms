@@ -4,7 +4,7 @@ import { isWithinRadius, type Coordinates } from "@/lib/geofence";
 import { getEndOfDay, getStartOfDay } from "@/lib/date";
 import { supabase } from "@/lib/supabase";
 import { fetchEmployeeBranch } from "@/services/profile";
-import { fetchOrgSettings, resolveCheckInStatus } from "@/services/orgSettings";
+import { fetchEmployeeDutyHours, resolveCheckInStatus, validateCheckInWindow } from "@/services/dutyHours";
 import type { AttendanceRecord } from "@/types/attendance";
 
 export const OUTSIDE_OFFICE_MESSAGE =
@@ -139,8 +139,14 @@ export async function checkIn(employeeId: string): Promise<AttendanceRecord> {
   }
 
   const now = new Date();
-  const settings = await fetchOrgSettings();
-  const status = resolveCheckInStatus(now, settings);
+  const dutyHours = await fetchEmployeeDutyHours(employeeId);
+  const windowError = validateCheckInWindow(now, dutyHours);
+
+  if (windowError) {
+    throw new Error(windowError);
+  }
+
+  const status = resolveCheckInStatus(now, dutyHours);
 
   const { data, error } = await supabase
     .from("attendance_records")

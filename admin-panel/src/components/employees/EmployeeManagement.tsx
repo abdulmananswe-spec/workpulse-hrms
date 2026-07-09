@@ -26,6 +26,7 @@ import {
   uploadEmployeeAvatarAction,
 } from "@/lib/employees/avatar-actions";
 import type { BranchSummary, EmployeeRow } from "@/lib/employees/queries";
+import { DEFAULT_DUTY_HOURS, toTimeInputValue } from "@shared/duty-hours";
 import { toast } from "sonner";
 
 type EmployeeManagementProps = {
@@ -48,6 +49,9 @@ const emptyForm: EmployeeFormInput = {
   designation: "",
   branch_id: null,
   is_active: true,
+  duty_start_time: toTimeInputValue(DEFAULT_DUTY_HOURS.duty_start_time),
+  duty_end_time: toTimeInputValue(DEFAULT_DUTY_HOURS.duty_end_time),
+  late_grace_minutes: DEFAULT_DUTY_HOURS.late_grace_minutes,
 };
 
 export function EmployeeManagement({
@@ -163,6 +167,9 @@ export function EmployeeManagement({
       designation: employee.designation ?? "",
       branch_id: employee.branch_id,
       is_active: employee.is_active,
+      duty_start_time: toTimeInputValue(employee.duty_start_time),
+      duty_end_time: toTimeInputValue(employee.duty_end_time),
+      late_grace_minutes: employee.late_grace_minutes,
     });
     setError(null);
     resetPhotoState(employee.avatar_url);
@@ -553,6 +560,56 @@ export function EmployeeManagement({
                   </option>
                 ))}
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="duty_start_time">Duty Start</Label>
+              <Input
+                id="duty_start_time"
+                type="time"
+                value={form.duty_start_time}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    duty_start_time: event.target.value,
+                  }))
+                }
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="duty_end_time">Duty End</Label>
+              <Input
+                id="duty_end_time"
+                type="time"
+                value={form.duty_end_time}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    duty_end_time: event.target.value,
+                  }))
+                }
+                required
+              />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="late_grace_minutes">Late Grace (minutes)</Label>
+              <Input
+                id="late_grace_minutes"
+                type="number"
+                min={0}
+                max={120}
+                value={form.late_grace_minutes}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    late_grace_minutes: Number(event.target.value),
+                  }))
+                }
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                Employees can check in from duty start until duty end. Check-ins after start + grace are marked late.
+              </p>
             </div>
           </div>
 

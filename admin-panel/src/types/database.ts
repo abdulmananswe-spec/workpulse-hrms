@@ -32,6 +32,9 @@ export interface Database {
           designation: string | null;
           branch_id: string | null;
           is_active: boolean;
+          duty_start_time: string;
+          duty_end_time: string;
+          late_grace_minutes: number;
           created_at: string;
           updated_at: string;
         };
@@ -46,6 +49,9 @@ export interface Database {
           designation?: string | null;
           branch_id?: string | null;
           is_active?: boolean;
+          duty_start_time?: string;
+          duty_end_time?: string;
+          late_grace_minutes?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -60,6 +66,9 @@ export interface Database {
           designation?: string | null;
           branch_id?: string | null;
           is_active?: boolean;
+          duty_start_time?: string;
+          duty_end_time?: string;
+          late_grace_minutes?: number;
           created_at?: string;
           updated_at?: string;
         };
