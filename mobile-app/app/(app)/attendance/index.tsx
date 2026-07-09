@@ -54,6 +54,7 @@ export default function AttendanceScreen() {
         refreshControl={
           <RefreshControl
             refreshing={today.isRefetching || month.isRefetching}
+            tintColor={tokens.primary}
             onRefresh={() => {
               void today.refetch();
               void month.refetch();
@@ -65,12 +66,12 @@ export default function AttendanceScreen() {
           title="Attendance"
           subtitle="Track presence, hours, and monthly performance"
           action={
-            <PressableScale onPress={() => router.push("/(app)/attendance/calendar")}>
+            <PressableScale onPress={() => router.push("/(app)/attendance/calendar")} haptic>
               <View
-                className="h-11 w-11 items-center justify-center rounded-2xl"
-                style={{ backgroundColor: tokens.primarySoft }}
+                className="h-11 w-11 items-center justify-center rounded-2xl border"
+                style={{ backgroundColor: tokens.primarySoft, borderColor: tokens.border }}
               >
-                <Ionicons name="calendar-outline" size={22} color={tokens.primary} />
+                <Ionicons name="calendar" size={20} color={tokens.primary} />
               </View>
             </PressableScale>
           }
@@ -79,61 +80,67 @@ export default function AttendanceScreen() {
         {today.isLoading ? (
           <Skeleton className="mb-5" height={160} />
         ) : (
-          <GlassCard className="mb-5">
-            <Text className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: tokens.textMuted }}>
-              Current Status
+          <GlassCard className="mb-5 p-5">
+            <Text className="text-[10px] font-bold uppercase tracking-wider" style={{ color: tokens.textMuted }}>
+              Today's Presence
             </Text>
-            <Text className="mt-2 text-2xl font-bold tracking-tight" style={{ color: tokens.text }}>
+            <Text className="mt-1 text-2xl font-black tracking-tight" style={{ color: tokens.text }}>
               {getTodayStatusLabel(record ?? null)}
             </Text>
-            <View className="mt-5 flex-row flex-wrap gap-y-4">
-              <Metric label="Check-In" value={formatTime(record?.check_in_time ?? null)} />
-              <Metric label="Check-Out" value={formatTime(record?.check_out_time ?? null)} />
+            <View className="mt-6 flex-row flex-wrap gap-y-5">
+              <Metric label="Check-In" value={formatTime(record?.check_in_time ?? null)} icon="log-in-outline" />
+              <Metric label="Check-Out" value={formatTime(record?.check_out_time ?? null)} icon="log-out-outline" />
               <Metric
-                label="Working Hours"
+                label="Hours Logged"
                 value={getWorkingHours(record?.check_in_time ?? null, record?.check_out_time ?? null)}
+                icon="hourglass-outline"
               />
-              <Metric label="Branch" value={profile?.branch?.name ?? "Not assigned"} />
+              <Metric label="Branch Location" value={profile?.branch?.name ?? "HQ Office"} icon="location-outline" />
             </View>
           </GlassCard>
         )}
 
         <QuickActionCard
-          title={isPending ? "Processing..." : "Check In Now"}
-          subtitle="Verify location and start your workday"
+          title={isPending ? "Processing..." : "Clock In"}
+          subtitle="Verify geofence coordinates and start shift"
           icon="log-in-outline"
           onPress={() => void handleCheckIn()}
           disabled={!canCheckIn}
         />
         <QuickActionCard
-          title={isPending ? "Processing..." : "Check Out Now"}
-          subtitle="Securely end your shift"
+          title={isPending ? "Processing..." : "Clock Out"}
+          subtitle="Record checkout time and close shift"
           icon="log-out-outline"
-          colors={["#0F766E", "#14B8A6"]}
+          colors={["#EF4444", "#DC2626"]}
           onPress={() => void handleCheckOut()}
           disabled={!canCheckOut}
         />
 
-        <GlassCard className="mb-6 mt-2">
-          <Text className="text-lg font-bold" style={{ color: tokens.text }}>
-            Monthly Summary
-          </Text>
-          <Text className="mt-2 text-sm leading-5" style={{ color: tokens.textSecondary }}>
-            {presentCount} present days recorded this month. Keep your streak going.
-          </Text>
+        <GlassCard className="mb-6 mt-2 p-5 flex-row items-center">
+          <View className="h-10 w-10 rounded-2xl items-center justify-center bg-indigo-500/10 mr-4">
+            <Ionicons name="star" size={20} color={tokens.primary} />
+          </View>
+          <View className="flex-1">
+            <Text className="text-sm font-black tracking-tight" style={{ color: tokens.text }}>
+              Monthly Summary
+            </Text>
+            <Text className="mt-1 text-xs leading-4" style={{ color: tokens.textSecondary }}>
+              {presentCount} active days recorded. Your punctuality maintains work pulse.
+            </Text>
+          </View>
         </GlassCard>
 
         <QuickActionCard
           title="Attendance Calendar"
-          subtitle="View present, absent, and leave days"
+          subtitle="Detailed ledger of your calendar status"
           icon="grid-outline"
           onPress={() => router.push("/(app)/attendance/calendar")}
         />
         <QuickActionCard
           title="Request Correction"
-          subtitle="Fix missed attendance entries"
+          subtitle="Log a shift correction request to HR"
           icon="create-outline"
-          colors={["#C2410C", "#F97316"]}
+          colors={["#F59E0B", "#D97706"]}
           onPress={() => router.push("/(app)/attendance/correction")}
         />
       </ScreenShell>
@@ -141,16 +148,21 @@ export default function AttendanceScreen() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({ label, value, icon }: { label: string; value: string; icon: keyof typeof Ionicons.glyphMap }) {
   const tokens = useDesignTokens();
   return (
-    <View className="min-w-[48%] pr-3">
-      <Text className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: tokens.textMuted }}>
-        {label}
-      </Text>
-      <Text className="mt-1 text-base font-semibold" style={{ color: tokens.text }}>
-        {value}
-      </Text>
+    <View className="min-w-[48%] pr-2 flex-row items-center">
+      <View className="h-8 w-8 rounded-xl items-center justify-center bg-zinc-100 dark:bg-zinc-800 mr-2.5">
+        <Ionicons name={icon} size={15} color={tokens.textSecondary} />
+      </View>
+      <View className="flex-1">
+        <Text className="text-[9px] font-bold uppercase tracking-wider" style={{ color: tokens.textMuted }}>
+          {label}
+        </Text>
+        <Text className="mt-0.5 text-xs font-bold tracking-tight" style={{ color: tokens.text }} numberOfLines={1}>
+          {value}
+        </Text>
+      </View>
     </View>
   );
 }

@@ -1,4 +1,7 @@
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
 import { Pressable, Text, TextInput, View, type TextInputProps } from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 import { PressableScale } from "@/components/ui/PressableScale";
 import { useDesignTokens } from "@/hooks/useDesignTokens";
@@ -7,25 +10,67 @@ type FormFieldProps = TextInputProps & {
   label: string;
 };
 
-export function FormField({ label, ...props }: FormFieldProps) {
+export function FormField({ label, secureTextEntry, ...props }: FormFieldProps) {
   const tokens = useDesignTokens();
+  const [isFocused, setIsFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const focusAnim = useSharedValue(0);
+
+  const handleFocus = () => {
+    setIsFocused(true);
+    focusAnim.value = withTiming(1, { duration: 200 });
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+    focusAnim.value = withTiming(0, { duration: 200 });
+  };
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      borderColor: withTiming(isFocused ? tokens.primary : tokens.border, { duration: 150 }),
+      backgroundColor: withTiming(isFocused ? tokens.backgroundElevated : tokens.backgroundMuted, { duration: 150 }),
+    };
+  });
+
+  const shouldHideText = secureTextEntry && !showPassword;
 
   return (
     <View className="mb-4">
-      <Text className="mb-2 text-sm font-semibold" style={{ color: tokens.textSecondary }}>
+      <Text className="mb-2 text-xs font-bold uppercase tracking-wider" style={{ color: tokens.textSecondary }}>
         {label}
       </Text>
-      <TextInput
-        placeholderTextColor={tokens.textMuted}
-        className="rounded-2xl px-4 py-3"
-        style={{
-          borderWidth: 1,
-          borderColor: tokens.borderSubtle,
-          backgroundColor: tokens.backgroundMuted,
-          color: tokens.text,
-        }}
-        {...props}
-      />
+      <Animated.View
+        className="flex-row items-center rounded-2xl border px-4"
+        style={[{ minHeight: 52 }, animatedStyle]}
+      >
+        <TextInput
+          placeholderTextColor={tokens.textMuted}
+          className="flex-1 py-3 text-base"
+          style={{
+            color: tokens.text,
+          }}
+          secureTextEntry={shouldHideText}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          {...props}
+        />
+        {secureTextEntry ? (
+          <PressableScale
+            onPress={() => setShowPassword(!showPassword)}
+            className="p-1"
+            scale={0.9}
+            haptic
+          >
+            <Ionicons
+              name={showPassword ? "eye-off-outline" : "eye-outline"}
+              size={20}
+              color={tokens.textSecondary}
+            />
+          </PressableScale>
+        ) : null}
+      </Animated.View>
     </View>
   );
 }
@@ -42,26 +87,30 @@ export function ChipSelect<T extends string>({ label, options, value, onChange }
 
   return (
     <View className="mb-4">
-      <Text className="mb-3 text-sm font-semibold" style={{ color: tokens.textSecondary }}>
+      <Text className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: tokens.textSecondary }}>
         {label}
       </Text>
       <View className="flex-row flex-wrap gap-2">
         {options.map((option) => {
           const selected = option.value === value;
           return (
-            <Pressable
+            <PressableScale
               key={option.value}
               onPress={() => onChange(option.value)}
-              className="rounded-full px-4 py-2"
-              style={{ backgroundColor: selected ? tokens.primary : tokens.backgroundMuted }}
+              className="rounded-full px-4 py-2.5 border"
+              style={{
+                backgroundColor: selected ? tokens.primary : tokens.backgroundMuted,
+                borderColor: selected ? tokens.primary : tokens.border,
+              }}
+              scale={0.97}
             >
               <Text
-                className="text-sm font-semibold"
+                className="text-xs font-semibold"
                 style={{ color: selected ? "#FFFFFF" : tokens.textSecondary }}
               >
                 {option.label}
               </Text>
-            </Pressable>
+            </PressableScale>
           );
         })}
       </View>
@@ -85,19 +134,30 @@ export function PrimaryButton({
   return (
     <PressableScale disabled={loading} onPress={onPress}>
       <View
-        className="mt-2 rounded-2xl py-4"
+        className="mt-2 rounded-[18px] py-4 items-center justify-center flex-row"
         style={{
           backgroundColor: isSecondary
             ? tokens.backgroundMuted
             : loading
-              ? `${tokens.primary}AA`
+              ? `${tokens.primary}CC`
               : tokens.primary,
           borderWidth: isSecondary ? 1 : 0,
-          borderColor: tokens.borderSubtle,
+          borderColor: tokens.border,
+          minHeight: 52,
+          shadowColor: tokens.primary,
+          shadowOffset: { width: 0, height: isSecondary ? 0 : 8 },
+          shadowOpacity: isSecondary ? 0 : 0.12,
+          shadowRadius: 16,
+          elevation: isSecondary ? 0 : 4,
         }}
       >
+        {loading ? (
+          <Animated.View className="mr-2">
+            <Ionicons name="sync-outline" size={18} color="#FFFFFF" className="animate-spin" />
+          </Animated.View>
+        ) : null}
         <Text
-          className="text-center text-base font-bold"
+          className="text-center text-base font-bold tracking-wide"
           style={{ color: isSecondary ? tokens.text : "#FFFFFF" }}
         >
           {title}

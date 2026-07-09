@@ -1,15 +1,36 @@
 import { Ionicons } from "@expo/vector-icons";
 import type { ReactNode } from "react";
+import { useEffect } from "react";
 import { Text, View } from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 
 import { useDesignTokens } from "@/hooks/useDesignTokens";
 
 export function Skeleton({ className = "h-4 w-full", height = 16 }: { className?: string; height?: number }) {
   const tokens = useDesignTokens();
+  const opacity = useSharedValue(0.35);
+
+  useEffect(() => {
+    opacity.value = withRepeat(
+      withSequence(
+        withTiming(0.8, { duration: 750 }),
+        withTiming(0.35, { duration: 750 })
+      ),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+    };
+  });
+
   return (
-    <View
+    <Animated.View
       className={`rounded-2xl ${className}`}
-      style={{ height, backgroundColor: tokens.backgroundMuted }}
+      style={[{ height, backgroundColor: tokens.backgroundMuted }, animatedStyle]}
     />
   );
 }
@@ -27,7 +48,7 @@ export function EmptyState({
 
   return (
     <View
-      className="items-center rounded-3xl px-6 py-12"
+      className="items-center rounded-[24px] px-6 py-10"
       style={{
         borderWidth: 1,
         borderColor: tokens.borderSubtle,
@@ -35,15 +56,15 @@ export function EmptyState({
       }}
     >
       <View
-        className="mb-4 h-14 w-14 items-center justify-center rounded-2xl"
+        className="mb-4 h-12 w-12 items-center justify-center rounded-[16px]"
         style={{ backgroundColor: tokens.primarySoft }}
       >
-        <Ionicons name={icon} size={26} color={tokens.primary} />
+        <Ionicons name={icon} size={22} color={tokens.primary} />
       </View>
-      <Text className="text-lg font-bold" style={{ color: tokens.text }}>
+      <Text className="text-base font-bold tracking-tight" style={{ color: tokens.text }}>
         {title}
       </Text>
-      <Text className="mt-2 text-center text-sm leading-5" style={{ color: tokens.textSecondary }}>
+      <Text className="mt-2 text-center text-xs leading-5" style={{ color: tokens.textSecondary }}>
         {description}
       </Text>
     </View>
@@ -64,11 +85,11 @@ export function SectionHeader({
   return (
     <View className="mb-4 flex-row items-end justify-between">
       <View className="flex-1 pr-3">
-        <Text className="text-2xl font-bold tracking-tight" style={{ color: tokens.text }}>
+        <Text className="text-lg font-bold tracking-tight" style={{ color: tokens.text }}>
           {title}
         </Text>
         {subtitle ? (
-          <Text className="mt-1 text-sm" style={{ color: tokens.textSecondary }}>
+          <Text className="mt-0.5 text-xs font-medium" style={{ color: tokens.textSecondary }}>
             {subtitle}
           </Text>
         ) : null}
@@ -96,7 +117,7 @@ export function StatusBadge({
 
   return (
     <View className="rounded-full px-3 py-1" style={{ backgroundColor: palette.bg }}>
-      <Text className="text-xs font-semibold capitalize" style={{ color: palette.text }}>
+      <Text className="text-[10px] font-bold uppercase tracking-wider" style={{ color: palette.text }}>
         {label}
       </Text>
     </View>

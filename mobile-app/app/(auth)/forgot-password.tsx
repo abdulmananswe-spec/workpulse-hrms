@@ -5,7 +5,6 @@ import { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   Text,
   View,
@@ -15,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { FormField, PrimaryButton } from "@/components/ui/FormField";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDesignTokens } from "@/hooks/useDesignTokens";
+import { PressableScale } from "@/components/ui/PressableScale";
 
 function mapResetError(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -41,7 +41,7 @@ export default function ForgotPasswordScreen() {
     setIsSubmitting(true);
     try {
       await resetPassword(email);
-      setSuccess("Password reset instructions have been sent to your email.");
+      setSuccess("Reset link sent successfully. Please check your inbox.");
     } catch (resetError) {
       setError(mapResetError(resetError));
     } finally {
@@ -55,8 +55,8 @@ export default function ForgotPasswordScreen() {
       <LinearGradient
         colors={["transparent", tokens.background]}
         className="absolute inset-0"
-        start={{ x: 0, y: 0.3 }}
-        end={{ x: 0, y: 1 }}
+        start={{ x: 0, y: 0.25 }}
+        end={{ x: 0, y: 0.9 }}
       />
 
       <SafeAreaView className="flex-1" edges={["top", "bottom"]}>
@@ -70,42 +70,44 @@ export default function ForgotPasswordScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <Pressable onPress={() => router.back()} className="mb-6 flex-row items-center self-start">
-              <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
-              <Text className="ml-2 font-semibold text-white">Back</Text>
-            </Pressable>
+            <PressableScale onPress={() => router.back()} className="mb-6 flex-row items-center self-start" scale={0.9} haptic>
+              <View className="flex-row items-center bg-white/10 px-3 py-1.5 rounded-full">
+                <Ionicons name="arrow-back" size={16} color="#FFFFFF" />
+                <Text className="ml-1.5 text-xs font-semibold text-white">Back</Text>
+              </View>
+            </PressableScale>
 
             <View className="mb-8">
-              <Text className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-100">
+              <Text className="text-[11px] font-bold uppercase tracking-[0.25em]" style={{ color: tokens.primary }}>
                 Account Recovery
               </Text>
               <Text className="mt-3 text-[32px] font-bold leading-tight tracking-tight text-white">
-                Reset your password
+                Reset Password
               </Text>
-              <Text className="mt-3 text-base leading-6 text-indigo-100/90">
-                Enter your work email and we will send secure reset instructions.
+              <Text className="mt-3 text-sm leading-6 text-indigo-100/80">
+                Enter your registered work email and we will dispatch a recovery link.
               </Text>
             </View>
 
             <View
-              className="rounded-[28px] p-6"
+              className="rounded-[32px] p-6"
               style={{
                 backgroundColor: tokens.backgroundElevated,
                 borderWidth: 1,
-                borderColor: tokens.borderSubtle,
+                borderColor: tokens.border,
                 shadowColor: "#0F172A",
                 shadowOffset: { width: 0, height: 16 },
-                shadowOpacity: 0.12,
+                shadowOpacity: 0.08,
                 shadowRadius: 32,
-                elevation: 10,
+                elevation: 6,
               }}
             >
               {error ? (
                 <View
-                  className="mb-4 rounded-2xl px-4 py-3"
-                  style={{ backgroundColor: tokens.dangerSoft, borderWidth: 1, borderColor: `${tokens.danger}33` }}
+                  className="mb-4 rounded-xl px-4 py-3"
+                  style={{ backgroundColor: tokens.dangerSoft, borderWidth: 1, borderColor: `${tokens.danger}22` }}
                 >
-                  <Text className="text-center text-sm font-medium" style={{ color: tokens.danger }}>
+                  <Text className="text-center text-xs font-semibold" style={{ color: tokens.danger }}>
                     {error}
                   </Text>
                 </View>
@@ -113,10 +115,10 @@ export default function ForgotPasswordScreen() {
 
               {success ? (
                 <View
-                  className="mb-4 rounded-2xl px-4 py-3"
-                  style={{ backgroundColor: tokens.successSoft, borderWidth: 1, borderColor: `${tokens.success}33` }}
+                  className="mb-4 rounded-xl px-4 py-3"
+                  style={{ backgroundColor: tokens.successSoft, borderWidth: 1, borderColor: `${tokens.success}22` }}
                 >
-                  <Text className="text-center text-sm font-medium" style={{ color: tokens.success }}>
+                  <Text className="text-center text-xs font-semibold" style={{ color: tokens.success }}>
                     {success}
                   </Text>
                 </View>
@@ -130,27 +132,31 @@ export default function ForgotPasswordScreen() {
                 autoComplete="email"
                 keyboardType="email-address"
                 textContentType="emailAddress"
-                placeholder="employee@company.com"
+                placeholder="name@company.com"
               />
 
               <PrimaryButton
-                title={isSubmitting ? "Sending..." : "Send Reset Link"}
+                title={isSubmitting ? "Sending Link..." : "Send Recovery Email"}
                 loading={isSubmitting}
                 onPress={() => void handleReset()}
               />
 
               {success ? (
-                <PrimaryButton
-                  title="Return to Sign In"
-                  variant="secondary"
-                  onPress={() => router.replace("/(auth)/login")}
-                />
+                <View className="mt-2">
+                  <PrimaryButton
+                    title="Return to Sign In"
+                    variant="secondary"
+                    onPress={() => router.replace("/(auth)/login")}
+                  />
+                </View>
               ) : null}
 
               <Link href="/(auth)/login" asChild>
-                <Text className="mt-4 text-center text-sm font-semibold" style={{ color: tokens.primary }}>
-                  Back to sign in
-                </Text>
+                <PressableScale className="mt-4 self-center py-2" scale={0.97} haptic={false}>
+                  <Text className="text-xs font-semibold" style={{ color: tokens.primary }}>
+                    Back to Sign In
+                  </Text>
+                </PressableScale>
               </Link>
             </View>
           </ScrollView>

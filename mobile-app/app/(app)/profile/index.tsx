@@ -22,19 +22,19 @@ export default function ProfileScreen() {
   return (
     <View className="flex-1" style={{ backgroundColor: tokens.background }}>
       <LinearGradient colors={tokens.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-        <SafeAreaView edges={["top"]} className="px-5 pb-12 pt-2">
-          <Text className="text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-100/90">
-            Account
+        <SafeAreaView edges={["top"]} className="px-5 pb-10 pt-3">
+          <Text className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-200">
+            My Workspace
           </Text>
           <View className="mt-4 flex-row items-center">
             <Avatar name={profile?.full_name} uri={profile?.avatar_url} size={64} showStatus ring />
             <View className="ml-4 flex-1">
-              <Text className="text-xl font-bold tracking-tight text-white" numberOfLines={1}>
+              <Text className="text-xl font-black tracking-tight text-white" numberOfLines={1}>
                 {profile?.full_name}
               </Text>
-              <Text className="mt-1 text-sm text-indigo-100/90">{profile?.email}</Text>
-              <View className="mt-2 self-start rounded-full px-2.5 py-1" style={{ backgroundColor: "rgba(255,255,255,0.14)" }}>
-                <Text className="text-[10px] font-semibold uppercase tracking-wider text-white">
+              <Text className="text-xs font-medium text-indigo-200/90" numberOfLines={1}>{profile?.email}</Text>
+              <View className="mt-2.5 self-start rounded-full px-3 py-1" style={{ backgroundColor: "rgba(255,255,255,0.12)" }}>
+                <Text className="text-[9px] font-bold uppercase tracking-wider text-white">
                   {profile?.designation ?? "Employee"}
                 </Text>
               </View>
@@ -44,25 +44,24 @@ export default function ProfileScreen() {
       </LinearGradient>
 
       <ScrollView
-        className="-mt-6 flex-1"
+        className="-mt-5 flex-1"
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: bottomPad }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="mb-4 flex-row gap-3">
-          <MiniStat label="Streak" value={stats.data?.currentStreak ?? 0} suffix="days" />
-          <MiniStat label="Best" value={stats.data?.bestStreak ?? 0} suffix="days" />
-          <MiniStat label="Badges" value={unlockedCount} />
+        <View className="mb-5 flex-row gap-4">
+          <MiniStat label="Streak" value={stats.data?.currentStreak ?? 0} suffix="days" icon="flame" iconColor="#EF4444" />
+          <MiniStat label="Best" value={stats.data?.bestStreak ?? 0} suffix="days" icon="trophy" iconColor="#F59E0B" />
+          <MiniStat label="Badges" value={unlockedCount} icon="ribbon" iconColor="#6366F1" />
         </View>
 
         <View
-          className="mb-4 rounded-3xl p-4"
+          className="mb-5 rounded-[24px] p-5 border"
           style={{
             backgroundColor: tokens.backgroundElevated,
-            borderWidth: 1,
-            borderColor: tokens.borderSubtle,
+            borderColor: tokens.border,
           }}
         >
-          <Text className="mb-3 text-xs font-semibold uppercase tracking-wider" style={{ color: tokens.textMuted }}>
+          <Text className="mb-4 text-[10px] font-bold uppercase tracking-wider" style={{ color: tokens.textMuted }}>
             Employee Details
           </Text>
           <DetailRow icon="id-card-outline" label="Code" value={profile?.employee_code ?? "—"} />
@@ -70,48 +69,56 @@ export default function ProfileScreen() {
           <DetailRow icon="business-outline" label="Branch" value={profile?.branch?.name ?? "—"} last />
         </View>
 
-        {achievements.slice(0, 2).map((item) => (
-          <View
-            key={item.id}
-            className="mb-2 flex-row items-center rounded-2xl px-4 py-3"
-            style={{
-              backgroundColor: item.unlocked ? tokens.successSoft : tokens.backgroundMuted,
-              borderWidth: 1,
-              borderColor: tokens.borderSubtle,
-            }}
-          >
-            <Ionicons
-              name={item.icon as keyof typeof Ionicons.glyphMap}
-              size={18}
-              color={item.unlocked ? tokens.success : tokens.textMuted}
-            />
-            <Text className="ml-3 flex-1 text-sm font-medium" style={{ color: tokens.text }}>
-              {item.title}
-            </Text>
-            {item.unlocked ? (
-              <Ionicons name="checkmark-circle" size={18} color={tokens.success} />
-            ) : null}
-          </View>
-        ))}
+        {/* Unlocked badges previews */}
+        <View className="mb-5">
+          {achievements.slice(0, 2).map((item) => (
+            <View
+              key={item.id}
+              className="mb-2 flex-row items-center rounded-2xl px-4 py-3 border"
+              style={{
+                backgroundColor: item.unlocked ? tokens.successSoft : tokens.backgroundMuted,
+                borderColor: item.unlocked ? `${tokens.success}22` : tokens.border,
+              }}
+            >
+              <View className="h-7 w-7 rounded-lg items-center justify-center bg-white/10 dark:bg-black/10 mr-3">
+                <Ionicons
+                  name={item.icon as keyof typeof Ionicons.glyphMap}
+                  size={16}
+                  color={item.unlocked ? tokens.success : tokens.textMuted}
+                />
+              </View>
+              <View className="flex-grow">
+                <Text className="text-xs font-bold tracking-tight" style={{ color: tokens.text }}>
+                  {item.title}
+                </Text>
+              </View>
+              {item.unlocked ? (
+                <Ionicons name="checkmark-circle" size={16} color={tokens.success} />
+              ) : (
+                <Ionicons name="lock-closed-outline" size={14} color={tokens.textMuted} />
+              )}
+            </View>
+          ))}
+        </View>
 
-        <Text className="mb-3 mt-4 text-xs font-semibold uppercase tracking-wider" style={{ color: tokens.textMuted }}>
-          Manage
+        <Text className="mb-3 text-[10px] font-bold uppercase tracking-wider" style={{ color: tokens.textMuted }}>
+          Account Controls
         </Text>
         <ListRow
           title="Account Settings"
-          subtitle="Security & appearance"
+          subtitle="Security, notification & theme options"
           icon="settings-outline"
           onPress={() => router.push("/(app)/profile/settings")}
         />
         <ListRow
-          title="Branch & Location"
-          subtitle="Geofence details"
+          title="Branch & Geofence"
+          subtitle="Office location & coordinate logs"
           icon="location-outline"
           onPress={() => router.push("/(app)/profile/branch")}
         />
         <ListRow
           title="Announcements"
-          subtitle="Company updates"
+          subtitle="Important broadcasts & updates"
           icon="megaphone-outline"
           onPress={() => router.push("/(app)/profile/announcements")}
         />
@@ -133,12 +140,14 @@ function DetailRow({
 }) {
   const tokens = useDesignTokens();
   return (
-    <View className={`flex-row items-center ${last ? "" : "mb-3"}`}>
-      <Ionicons name={icon} size={16} color={tokens.textMuted} />
-      <Text className="ml-2 w-16 text-xs font-medium" style={{ color: tokens.textMuted }}>
+    <View className={`flex-row items-center ${last ? "" : "mb-3.5"}`}>
+      <View className="h-7 w-7 rounded-lg items-center justify-center bg-zinc-100 dark:bg-zinc-800 mr-3">
+        <Ionicons name={icon} size={15} color={tokens.textSecondary} />
+      </View>
+      <Text className="w-16 text-xs font-bold uppercase tracking-wider" style={{ color: tokens.textMuted }}>
         {label}
       </Text>
-      <Text className="flex-1 text-sm font-semibold" style={{ color: tokens.text }} numberOfLines={1}>
+      <Text className="flex-1 text-sm font-semibold tracking-tight" style={{ color: tokens.text }} numberOfLines={1}>
         {value}
       </Text>
     </View>
@@ -149,27 +158,33 @@ function MiniStat({
   label,
   value,
   suffix,
+  icon,
+  iconColor,
 }: {
   label: string;
   value: number;
   suffix?: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  iconColor: string;
 }) {
   const tokens = useDesignTokens();
   return (
     <View
-      className="flex-1 rounded-2xl px-3 py-3"
+      className="flex-1 rounded-[20px] p-3.5 border"
       style={{
         backgroundColor: tokens.backgroundElevated,
-        borderWidth: 1,
-        borderColor: tokens.borderSubtle,
+        borderColor: tokens.border,
       }}
     >
-      <Text className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: tokens.textMuted }}>
-        {label}
-      </Text>
-      <Text className="mt-1 text-xl font-bold" style={{ color: tokens.text }}>
+      <View className="flex-row items-center justify-between mb-2">
+        <Text className="text-[9px] font-bold uppercase tracking-wider" style={{ color: tokens.textMuted }}>
+          {label}
+        </Text>
+        <Ionicons name={icon} size={14} color={iconColor} />
+      </View>
+      <Text className="text-xl font-black" style={{ color: tokens.text }}>
         {value}
-        {suffix ? <Text className="text-xs font-medium" style={{ color: tokens.textSecondary }}> {suffix}</Text> : null}
+        {suffix ? <Text className="text-[10px] font-semibold" style={{ color: tokens.textSecondary }}> {suffix}</Text> : null}
       </Text>
     </View>
   );

@@ -1,15 +1,14 @@
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  type PressableProps,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import type { PressableProps, ViewStyle } from "react-native";
+
+import { PressableScale } from "@/components/ui/PressableScale";
+import { useDesignTokens } from "@/hooks/useDesignTokens";
 
 type ButtonProps = PressableProps & {
   title: string;
   loading?: boolean;
   variant?: "primary" | "secondary" | "ghost";
+  style?: any;
 };
 
 export function Button({
@@ -17,50 +16,61 @@ export function Button({
   loading = false,
   variant = "primary",
   disabled,
-  style: customStyle,
+  style,
   ...props
 }: ButtonProps) {
+  const tokens = useDesignTokens();
   const isDisabled = disabled || loading;
 
+  const getStyles = () => {
+    switch (variant) {
+      case "primary":
+        return {
+          bg: tokens.primary,
+          text: "#FFFFFF",
+          border: 0,
+          borderColor: "transparent",
+        };
+      case "secondary":
+        return {
+          bg: tokens.backgroundMuted,
+          text: tokens.text,
+          border: 1,
+          borderColor: tokens.border,
+        };
+      case "ghost":
+        return {
+          bg: "transparent",
+          text: tokens.primary,
+          border: 0,
+          borderColor: "transparent",
+        };
+    }
+  };
+
+  const buttonStyle = getStyles();
+
   return (
-    <Pressable
-      accessibilityRole="button"
+    <PressableScale
       disabled={isDisabled}
-      style={({ pressed }) => {
-        const baseStyles = [
-          styles.base,
-          variant === "primary" && styles.primary,
-          variant === "secondary" && styles.secondary,
-          variant === "ghost" && styles.ghost,
-          pressed && !isDisabled && styles.pressed,
-          isDisabled && styles.disabled,
-        ];
-
-        if (typeof customStyle === "function") {
-          return [...baseStyles, customStyle({ pressed })];
-        }
-
-        return [...baseStyles, customStyle];
-      }}
+      style={[
+        styles.base,
+        {
+          backgroundColor: buttonStyle.bg,
+          borderWidth: buttonStyle.border,
+          borderColor: buttonStyle.borderColor,
+          opacity: isDisabled ? 0.6 : 1,
+        },
+        style,
+      ]}
       {...props}
     >
       {loading ? (
-        <ActivityIndicator
-          color={variant === "primary" ? "#ffffff" : "#0f172a"}
-        />
+        <ActivityIndicator color={buttonStyle.text} size="small" />
       ) : (
-        <Text
-          style={[
-            styles.text,
-            variant === "primary" && styles.primaryText,
-            variant === "secondary" && styles.secondaryText,
-            variant === "ghost" && styles.ghostText,
-          ]}
-        >
-          {title}
-        </Text>
+        <Text style={[styles.text, { color: buttonStyle.text }]}>{title}</Text>
       )}
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -68,38 +78,15 @@ const styles = StyleSheet.create({
   base: {
     width: "100%",
     minHeight: 52,
-    borderRadius: 14,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 20,
     marginTop: 8,
   },
-  primary: {
-    backgroundColor: "#0f172a",
-  },
-  secondary: {
-    backgroundColor: "#e2e8f0",
-  },
-  ghost: {
-    backgroundColor: "transparent",
-  },
-  pressed: {
-    opacity: 0.9,
-  },
-  disabled: {
-    opacity: 0.6,
-  },
   text: {
     fontSize: 16,
-    fontWeight: "600",
-  },
-  primaryText: {
-    color: "#ffffff",
-  },
-  secondaryText: {
-    color: "#0f172a",
-  },
-  ghostText: {
-    color: "#2563eb",
+    fontWeight: "700",
+    letterSpacing: 0.2,
   },
 });

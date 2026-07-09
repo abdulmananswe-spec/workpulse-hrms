@@ -13,6 +13,8 @@ type BranchLocationMapProps = {
 function buildMapHtml(
   branchName: string,
   coordinates: ParsedBranchCoordinates,
+  primaryColor: string,
+  bgColor: string,
 ): string {
   const { latitude, longitude, radiusMeters } = coordinates;
   const safeName = branchName.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
@@ -37,7 +39,7 @@ function buildMapHtml(
       crossorigin=""
     ></script>
     <style>
-      html, body, #map { height: 100%; margin: 0; background: #f8fafc; }
+      html, body, #map { height: 100%; margin: 0; background: ${bgColor}; }
     </style>
   </head>
   <body>
@@ -52,8 +54,8 @@ function buildMapHtml(
         L.marker([${latitude}, ${longitude}]).addTo(map).bindPopup("${safeName}");
         L.circle([${latitude}, ${longitude}], {
           radius: ${radiusMeters},
-          color: "#4F46E5",
-          fillColor: "#4F46E5",
+          color: "${primaryColor}",
+          fillColor: "${primaryColor}",
           fillOpacity: 0.15,
         }).addTo(map);
       } catch (error) {
@@ -68,14 +70,14 @@ function buildMapHtml(
 export function BranchLocationMap({ branchName, coordinates }: BranchLocationMapProps) {
   const tokens = useDesignTokens();
   const mapHtml = useMemo(
-    () => buildMapHtml(branchName, coordinates),
-    [branchName, coordinates],
+    () => buildMapHtml(branchName, coordinates, tokens.primary, tokens.backgroundElevated),
+    [branchName, coordinates, tokens.primary, tokens.backgroundElevated],
   );
 
   return (
     <View
       className="mt-6 h-72 overflow-hidden rounded-3xl"
-      style={{ borderWidth: 1, borderColor: tokens.borderSubtle }}
+      style={{ borderWidth: 1, borderColor: tokens.border }}
     >
       <WebView
         originWhitelist={["*"]}

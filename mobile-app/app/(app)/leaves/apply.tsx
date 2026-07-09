@@ -81,7 +81,7 @@ export default function ApplyLeaveScreen() {
   return (
     <SubScreenLayout
       title="Apply Leave"
-      subtitle="Submit a professional leave request for manager approval."
+      subtitle="Submit a professional time-off request for review."
       onBack={() => router.back()}
     >
       <FormCard>
@@ -110,7 +110,14 @@ export default function ApplyLeaveScreen() {
           control={control}
           name="reason"
           render={({ field: { value, onChange } }) => (
-            <FormField label="Reason" value={value} onChangeText={onChange} multiline />
+            <FormField
+              label="Reason for Request"
+              value={value}
+              onChangeText={onChange}
+              multiline
+              numberOfLines={4}
+              style={{ textAlignVertical: "top", minHeight: 80 }}
+            />
           )}
         />
 

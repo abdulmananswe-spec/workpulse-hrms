@@ -1,26 +1,48 @@
-import {
-  StyleSheet,
-  Text,
-  TextInput as RNTextInput,
-  View,
-  type TextInputProps as RNTextInputProps,
-} from "react-native";
+import { useState } from "react";
+import { StyleSheet, Text, TextInput as RNTextInput, View } from "react-native";
+import type { TextInputProps as RNTextInputProps } from "react-native";
+import Animated, { useAnimatedStyle, withTiming } from "react-native-reanimated";
+
+import { useDesignTokens } from "@/hooks/useDesignTokens";
 
 type TextInputProps = RNTextInputProps & {
   label: string;
   error?: string | null;
+  style?: any;
 };
 
 export function TextInput({ label, error, style, ...props }: TextInputProps) {
+  const tokens = useDesignTokens();
+  const [isFocused, setIsFocused] = useState(false);
+
+  const inputStyle = useAnimatedStyle(() => {
+    return {
+      borderColor: withTiming(
+        error ? tokens.danger : isFocused ? tokens.primary : tokens.border,
+        { duration: 150 }
+      ),
+      backgroundColor: withTiming(
+        isFocused ? tokens.backgroundElevated : tokens.backgroundMuted,
+        { duration: 150 }
+      ),
+    };
+  });
+
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
-      <RNTextInput
-        placeholderTextColor="#94a3b8"
-        style={[styles.input, error ? styles.inputError : null, style]}
-        {...props}
-      />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <Text style={[styles.label, { color: tokens.textSecondary }]}>{label}</Text>
+      <Animated.View style={[styles.inputWrapper, inputStyle]}>
+        <RNTextInput
+          placeholderTextColor={tokens.textMuted}
+          style={[styles.input, { color: tokens.text }, style]}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          {...props}
+        />
+      </Animated.View>
+      {error ? (
+        <Text style={[styles.error, { color: tokens.danger }]}>{error}</Text>
+      ) : null}
     </View>
   );
 }
@@ -31,28 +53,28 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#334155",
+    fontSize: 12,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
     marginBottom: 8,
   },
-  input: {
+  inputWrapper: {
     width: "100%",
     minHeight: 52,
     borderWidth: 1,
-    borderColor: "#cbd5e1",
-    borderRadius: 14,
+    borderRadius: 16,
     paddingHorizontal: 16,
-    fontSize: 16,
-    color: "#0f172a",
-    backgroundColor: "#ffffff",
+    justifyContent: "center",
   },
-  inputError: {
-    borderColor: "#ef4444",
+  input: {
+    width: "100%",
+    fontSize: 16,
+    paddingVertical: 12,
   },
   error: {
     marginTop: 6,
     fontSize: 12,
-    color: "#ef4444",
+    fontWeight: "500",
   },
 });

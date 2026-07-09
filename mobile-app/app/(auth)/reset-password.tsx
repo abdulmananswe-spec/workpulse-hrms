@@ -7,7 +7,6 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   Text,
   View,
@@ -17,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { FormField, PrimaryButton } from "@/components/ui/FormField";
 import { useDesignTokens } from "@/hooks/useDesignTokens";
 import { supabase } from "@/lib/supabase";
+import { PressableScale } from "@/components/ui/PressableScale";
 
 export default function ResetPasswordScreen() {
   const tokens = useDesignTokens();
@@ -63,7 +63,7 @@ export default function ResetPasswordScreen() {
     return (
       <View className="flex-1 items-center justify-center" style={{ backgroundColor: tokens.background }}>
         <ActivityIndicator size="large" color={tokens.primary} />
-        <Text className="mt-4 text-sm" style={{ color: tokens.textSecondary }}>
+        <Text className="mt-4 text-xs font-semibold" style={{ color: tokens.textSecondary }}>
           Validating reset link...
         </Text>
       </View>
@@ -76,8 +76,8 @@ export default function ResetPasswordScreen() {
       <LinearGradient
         colors={["transparent", tokens.background]}
         className="absolute inset-0"
-        start={{ x: 0, y: 0.3 }}
-        end={{ x: 0, y: 1 }}
+        start={{ x: 0, y: 0.25 }}
+        end={{ x: 0, y: 0.9 }}
       />
 
       <SafeAreaView className="flex-1" edges={["top", "bottom"]}>
@@ -91,34 +91,36 @@ export default function ResetPasswordScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <Pressable onPress={() => router.replace("/(auth)/login")} className="mb-6 flex-row items-center self-start">
-              <Ionicons name="arrow-back" size={20} color="#FFFFFF" />
-              <Text className="ml-2 font-semibold text-white">Back</Text>
-            </Pressable>
+            <PressableScale onPress={() => router.replace("/(auth)/login")} className="mb-6 flex-row items-center self-start" scale={0.9} haptic>
+              <View className="flex-row items-center bg-white/10 px-3 py-1.5 rounded-full">
+                <Ionicons name="arrow-back" size={16} color="#FFFFFF" />
+                <Text className="ml-1.5 text-xs font-semibold text-white">Back</Text>
+              </View>
+            </PressableScale>
 
             <View className="mb-8">
-              <Text className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-100">
+              <Text className="text-[11px] font-bold uppercase tracking-[0.25em]" style={{ color: tokens.primary }}>
                 Security
               </Text>
               <Text className="mt-3 text-[32px] font-bold leading-tight tracking-tight text-white">
-                Set new password
+                New Password
               </Text>
-              <Text className="mt-3 text-base leading-6 text-indigo-100/90">
-                Choose a strong password to protect your HR workspace.
+              <Text className="mt-3 text-sm leading-6 text-indigo-100/80">
+                Choose a strong password to protect your HR account.
               </Text>
             </View>
 
             <View
-              className="rounded-[28px] p-6"
+              className="rounded-[32px] p-6"
               style={{
                 backgroundColor: tokens.backgroundElevated,
                 borderWidth: 1,
-                borderColor: tokens.borderSubtle,
+                borderColor: tokens.border,
                 shadowColor: "#0F172A",
                 shadowOffset: { width: 0, height: 16 },
-                shadowOpacity: 0.12,
+                shadowOpacity: 0.08,
                 shadowRadius: 32,
-                elevation: 10,
+                elevation: 6,
               }}
             >
               <FormField
@@ -137,7 +139,7 @@ export default function ResetPasswordScreen() {
                 secureTextEntry
                 autoCapitalize="none"
                 textContentType="newPassword"
-                placeholder="Re-enter password"
+                placeholder="Confirm password"
                 onSubmitEditing={() => void handleSubmit()}
               />
 
@@ -148,8 +150,8 @@ export default function ResetPasswordScreen() {
               />
 
               <View className="mt-6 flex-row items-center justify-center gap-2">
-                <Ionicons name="lock-closed-outline" size={16} color={tokens.textMuted} />
-                <Text className="text-xs" style={{ color: tokens.textMuted }}>
+                <Ionicons name="lock-closed" size={14} color={tokens.success} />
+                <Text className="text-[10px] font-semibold" style={{ color: tokens.textMuted }}>
                   Passwords are encrypted end-to-end
                 </Text>
               </View>

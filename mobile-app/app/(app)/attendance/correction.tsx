@@ -1,6 +1,7 @@
 import { Controller, useForm } from "react-hook-form";
 import { router } from "expo-router";
 import { Alert, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import { ChipSelect, FormField, PrimaryButton } from "@/components/ui/FormField";
 import { StatusBadge } from "@/components/ui/Feedback";
@@ -18,7 +19,7 @@ type FormValues = {
 const types: Array<{ value: CorrectionType; label: string }> = [
   { value: "missed_check_in", label: "Missed Check-In" },
   { value: "missed_check_out", label: "Missed Check-Out" },
-  { value: "attendance_correction", label: "Attendance Correction" },
+  { value: "attendance_correction", label: "Correction" },
 ];
 
 export default function CorrectionScreen() {
@@ -52,7 +53,7 @@ export default function CorrectionScreen() {
   return (
     <SubScreenLayout
       title="Attendance Correction"
-      subtitle="Submit missed check-in/out or attendance corrections for review."
+      subtitle="Submit shift entries or missed punches to HR for review."
       onBack={() => router.back()}
     >
       <FormCard>
@@ -78,10 +79,12 @@ export default function CorrectionScreen() {
           rules={{ required: true }}
           render={({ field: { value, onChange } }) => (
             <FormField
-              label="Reason / Evidence Notes"
+              label="Reason / Notes"
               value={value}
               onChangeText={onChange}
               multiline
+              numberOfLines={4}
+              style={{ textAlignVertical: "top", minHeight: 80 }}
             />
           )}
         />
@@ -93,32 +96,63 @@ export default function CorrectionScreen() {
         />
       </FormCard>
 
-      <Text className="mb-3 mt-8 text-lg font-bold" style={{ color: tokens.text }}>
-        Recent Requests
+      <Text className="mb-4 mt-8 text-base font-black tracking-tight" style={{ color: tokens.text }}>
+        Recent Correction Logs
       </Text>
-      {(corrections.data ?? []).slice(0, 5).map((item) => (
-        <View
-          key={item.id}
-          className="mb-3 rounded-3xl p-4"
-          style={{
-            backgroundColor: tokens.backgroundElevated,
-            borderWidth: 1,
-            borderColor: tokens.borderSubtle,
-          }}
-        >
-          <View className="flex-row items-start justify-between">
-            <View className="flex-1 pr-3">
-              <Text className="font-semibold capitalize" style={{ color: tokens.text }}>
-                {item.correction_type.replaceAll("_", " ")}
-              </Text>
-              <Text className="mt-1 text-sm" style={{ color: tokens.textSecondary }}>
-                {item.attendance_date}
-              </Text>
-            </View>
-            <StatusBadge label={item.status} tone={item.status === "approved" ? "success" : "warning"} />
-          </View>
+      {corrections.isLoading ? (
+        <View className="space-y-3">
+          <View className="h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+          <View className="h-16 rounded-2xl bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
         </View>
-      ))}
+      ) : (corrections.data ?? []).length === 0 ? (
+        <View className="rounded-3xl p-6 items-center border" style={{ backgroundColor: tokens.backgroundElevated, borderColor: tokens.border }}>
+          <Text className="text-xs font-semibold" style={{ color: tokens.textMuted }}>No request history found.</Text>
+        </View>
+      ) : (
+        (corrections.data ?? []).slice(0, 5).map((item) => (
+          <View
+            key={item.id}
+            className="mb-3 rounded-[20px] p-4 border"
+            style={{
+              backgroundColor: tokens.backgroundElevated,
+              borderColor: tokens.border,
+            }}
+          >
+            <View className="flex-row items-center justify-between">
+              <View className="flex-1 pr-3 flex-row items-center">
+                <View className="h-9 w-9 rounded-xl items-center justify-center bg-zinc-100 dark:bg-zinc-800 mr-3">
+                  <Ionicons name="construct-outline" size={16} color={tokens.textSecondary} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-sm font-bold capitalize tracking-tight" style={{ color: tokens.text }}>
+                    {item.correction_type.replaceAll("_", " ")}
+                  </Text>
+                  <Text className="mt-0.5 text-[10px] font-semibold" style={{ color: tokens.textMuted }}>
+                    {item.attendance_date}
+                  </Text>
+                </View>
+              </View>
+              <StatusBadge
+                label={item.status}
+                tone={
+                  item.status === "approved"
+                    ? "success"
+                    : item.status === "rejected"
+                      ? "danger"
+                      : "warning"
+                }
+              />
+            </View>
+            {item.reason ? (
+              <View className="mt-3 border-t pt-2" style={{ borderColor: tokens.borderSubtle }}>
+                <Text className="text-xs italic" style={{ color: tokens.textSecondary }}>
+                  "{item.reason}"
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        ))
+      )}
     </SubScreenLayout>
   );
 }

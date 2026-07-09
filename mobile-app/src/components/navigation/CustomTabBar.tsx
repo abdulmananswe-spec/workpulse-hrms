@@ -2,9 +2,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import { useSegments } from "expo-router";
+import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 
 import { useDesignTokens } from "@/hooks/useDesignTokens";
 import { useTheme } from "@/providers/ThemeProvider";
@@ -53,6 +55,26 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const tokens = useDesignTokens();
   const visible = useTabBarVisible();
 
+  const [containerWidth, setContainerWidth] = useState(0);
+  const tabWidth = containerWidth ? (containerWidth - 16) / state.routes.length : 0;
+  const translateX = useSharedValue(0);
+
+  useEffect(() => {
+    if (tabWidth > 0) {
+      translateX.value = withSpring(8 + state.index * tabWidth, {
+        damping: 18,
+        stiffness: 150,
+      });
+    }
+  }, [state.index, tabWidth]);
+
+  const indicatorStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }],
+      width: tabWidth,
+    };
+  });
+
   if (!visible) return null;
 
   return (
@@ -72,9 +94,25 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
         }}
       >
         <View
-          className="flex-row items-center px-2 py-2"
+          className="flex-row items-center px-2 py-2 relative"
           style={{ backgroundColor: tokens.tabBar }}
+          onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
         >
+          {tabWidth > 0 ? (
+            <Animated.View
+              style={[
+                indicatorStyle,
+                {
+                  position: "absolute",
+                  top: 8,
+                  bottom: 8,
+                  borderRadius: 20,
+                  backgroundColor: tokens.primarySoft,
+                },
+              ]}
+            />
+          ) : null}
+
           {state.routes.map((route, index) => {
             const tab = tabs.find((item) => item.name === route.name);
             if (!tab) return null;
@@ -86,7 +124,6 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
                 key={route.key}
                 accessibilityRole="button"
                 accessibilityState={isFocused ? { selected: true } : {}}
-
                 onPress={() => {
                   void Haptics.selectionAsync();
                   const event = navigation.emit({
@@ -100,12 +137,6 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
                 }}
                 className="relative flex-1 items-center py-2"
               >
-                {isFocused ? (
-                  <View
-                    className="absolute inset-x-1 inset-y-0 rounded-[20px]"
-                    style={{ backgroundColor: tokens.primarySoft }}
-                  />
-                ) : null}
                 <View className="items-center">
                   <Ionicons
                     name={isFocused ? tab.iconFocused : tab.icon}
@@ -113,7 +144,7 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
                     color={isFocused ? tokens.primary : tokens.textMuted}
                   />
                   <Text
-                    className="mt-1 text-[10px] font-semibold"
+                    className="mt-1 text-[10px] font-bold"
                     style={{ color: isFocused ? tokens.primary : tokens.textMuted }}
                   >
                     {tab.label}

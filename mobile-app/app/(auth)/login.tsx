@@ -3,9 +3,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Link } from "expo-router";
 import { useState } from "react";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   Text,
   View,
@@ -69,8 +69,8 @@ export default function LoginScreen() {
       <LinearGradient
         colors={["transparent", tokens.background]}
         className="absolute inset-0"
-        start={{ x: 0, y: 0.35 }}
-        end={{ x: 0, y: 1 }}
+        start={{ x: 0, y: 0.25 }}
+        end={{ x: 0, y: 0.9 }}
       />
 
       <SafeAreaView className="flex-1" edges={["top", "bottom"]}>
@@ -81,69 +81,71 @@ export default function LoginScreen() {
         >
           <ScrollView
             className="flex-1"
-            contentContainerClassName="flex-grow px-6 pb-6 pt-8"
+            contentContainerClassName="flex-grow px-6 pb-6 pt-10"
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <View className="mb-8">
-              <View
-                className="mb-5 h-14 w-14 items-center justify-center rounded-2xl"
-                style={{ backgroundColor: "rgba(255,255,255,0.16)" }}
+            <View className="mb-10">
+              <LinearGradient
+                colors={[tokens.primary, tokens.accent]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                className="mb-6 h-12 w-12 items-center justify-center rounded-[16px] shadow-lg"
               >
-                <Text className="text-lg font-bold text-white">WP</Text>
-              </View>
-              <Text className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-100">
-                WorkPulse HRMS
+                <Ionicons name="sparkles" size={24} color="#FFFFFF" />
+              </LinearGradient>
+              <Text className="text-[11px] font-bold uppercase tracking-[0.25em]" style={{ color: tokens.primary }}>
+                WorkPulse Platform
               </Text>
-              <Text className="mt-3 text-[34px] font-bold leading-tight tracking-tight text-white">
-                Enterprise attendance, simplified.
+              <Text className="mt-3 text-[36px] font-black leading-tight tracking-tight text-white">
+                Enterprise HR & Attendance.
               </Text>
-              <Text className="mt-3 text-base leading-6 text-indigo-100/90">
-                Secure sign-in for employees. Trusted by modern HR teams.
+              <Text className="mt-3 text-sm leading-6 text-indigo-100/80">
+                Secure workspace access for employees. Realtime geofenced clocking.
               </Text>
             </View>
 
             <View
-              className="rounded-[28px] p-6"
+              className="rounded-[32px] p-6"
               style={{
                 backgroundColor: tokens.backgroundElevated,
                 borderWidth: 1,
-                borderColor: tokens.borderSubtle,
+                borderColor: tokens.border,
                 shadowColor: "#0F172A",
-                shadowOffset: { width: 0, height: 16 },
-                shadowOpacity: 0.12,
-                shadowRadius: 32,
-                elevation: 10,
+                shadowOffset: { width: 0, height: 20 },
+                shadowOpacity: 0.08,
+                shadowRadius: 40,
+                elevation: 6,
               }}
             >
-              <Text className="text-xl font-bold" style={{ color: tokens.text }}>
-                Sign in
+              <Text className="text-xl font-bold tracking-tight" style={{ color: tokens.text }}>
+                Sign In
               </Text>
-              <Text className="mt-1 text-sm" style={{ color: tokens.textSecondary }}>
-                Access your attendance workspace
+              <Text className="mt-1 text-xs" style={{ color: tokens.textSecondary }}>
+                Enter your credentials to enter your workplace
               </Text>
 
               {displayError ? (
                 <View
-                  className="mt-4 rounded-2xl px-4 py-3"
-                  style={{ backgroundColor: tokens.dangerSoft, borderWidth: 1, borderColor: `${tokens.danger}33` }}
+                  className="mt-4 rounded-xl px-4 py-3"
+                  style={{ backgroundColor: tokens.dangerSoft, borderWidth: 1, borderColor: `${tokens.danger}22` }}
                 >
-                  <Text className="text-center text-sm font-medium" style={{ color: tokens.danger }}>
+                  <Text className="text-center text-xs font-semibold" style={{ color: tokens.danger }}>
                     {displayError}
                   </Text>
                 </View>
               ) : null}
 
-              <View className="mt-5">
+              <View className="mt-6">
                 <FormField
-                  label="Work Email"
+                  label="Email Address"
                   value={email}
                   onChangeText={setEmail}
                   autoCapitalize="none"
                   autoComplete="email"
                   keyboardType="email-address"
                   textContentType="emailAddress"
-                  placeholder="employee@company.com"
+                  placeholder="name@company.com"
                   returnKeyType="next"
                 />
                 <FormField
@@ -153,16 +155,18 @@ export default function LoginScreen() {
                   secureTextEntry
                   autoCapitalize="none"
                   textContentType="password"
-                  placeholder="Enter your password"
+                  placeholder="Enter secure password"
                   returnKeyType="done"
                   onSubmitEditing={() => void handleLogin()}
                 />
               </View>
 
               <Link href="/(auth)/forgot-password" asChild>
-                <Text className="mb-2 text-center text-sm font-semibold" style={{ color: tokens.primary }}>
-                  Forgot password?
-                </Text>
+                <Pressable className="mb-4 self-center py-1">
+                  <Text className="text-xs font-semibold" style={{ color: tokens.primary }}>
+                    Recover password?
+                  </Text>
+                </Pressable>
               </Link>
 
               <PrimaryButton
@@ -172,17 +176,17 @@ export default function LoginScreen() {
               />
 
               <View className="mt-6 flex-row items-center justify-center gap-2">
-                <Ionicons name="shield-checkmark-outline" size={16} color={tokens.textMuted} />
-                <Text className="text-xs" style={{ color: tokens.textMuted }}>
-                  Encrypted connection · SOC-ready infrastructure
+                <Ionicons name="shield-checkmark" size={14} color={tokens.success} />
+                <Text className="text-[10px] font-semibold" style={{ color: tokens.textMuted }}>
+                  End-to-end Encrypted · SOC-2 Infrastructure
                 </Text>
               </View>
             </View>
           </ScrollView>
 
           <View className="px-6 pb-2">
-            <Text className="text-center text-xs" style={{ color: tokens.textMuted }}>
-              © 2026 WorkPulse HRMS · Developed by Abdul Manan
+            <Text className="text-center text-[10px] font-semibold tracking-wider text-zinc-500 uppercase">
+              © 2026 WorkPulse · All Rights Reserved
             </Text>
           </View>
         </KeyboardAvoidingView>

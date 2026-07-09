@@ -18,35 +18,38 @@ export function ListRow({ title, subtitle, icon, onPress, trailing }: ListRowPro
 
   const content = (
     <View
-      className="mb-3 flex-row items-center rounded-3xl px-4 py-4"
+      className="mb-3 flex-row items-center rounded-[20px] px-4 py-3.5 border"
       style={{
         backgroundColor: tokens.backgroundElevated,
-        borderWidth: 1,
-        borderColor: tokens.borderSubtle,
+        borderColor: tokens.border,
       }}
     >
       {icon ? (
         <View
-          className="mr-3 h-11 w-11 items-center justify-center rounded-2xl"
+          className="mr-3 h-10 w-10 items-center justify-center rounded-[12px]"
           style={{ backgroundColor: tokens.primarySoft }}
         >
-          <Ionicons name={icon} size={20} color={tokens.primary} />
+          <Ionicons name={icon} size={18} color={tokens.primary} />
         </View>
       ) : null}
       <View className="flex-1">
-        <Text className="text-base font-semibold" style={{ color: tokens.text }}>
+        <Text className="text-sm font-bold tracking-tight" style={{ color: tokens.text }}>
           {title}
         </Text>
         {subtitle ? (
-          <Text className="mt-1 text-sm" style={{ color: tokens.textSecondary }}>
+          <Text className="mt-0.5 text-xs font-semibold" style={{ color: tokens.textSecondary }}>
             {subtitle}
           </Text>
         ) : null}
       </View>
-      {trailing ?? <Ionicons name="chevron-forward" size={18} color={tokens.textMuted} />}
+      {trailing ?? (
+        <View className="h-7 w-7 rounded-full items-center justify-center bg-zinc-50 dark:bg-zinc-800">
+          <Ionicons name="chevron-forward" size={14} color={tokens.textMuted} />
+        </View>
+      )}
     </View>
   );
 
   if (!onPress) return content;
-  return <PressableScale onPress={onPress}>{content}</PressableScale>;
+  return <PressableScale onPress={onPress} scale={0.98} haptic>{content}</PressableScale>;
 }
