@@ -1,0 +1,21 @@
+[package]
+name = "workpulse-hrms-desktop"
+version = "1.0.0"
+description = "WorkPulse HRMS Desktop App Wrapper"
+authors = ["Abdul Manan"]
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["system-tray", "notification"] }
+tauri-plugin-single-instance = "2"
+tauri-plugin-window-state = "2"
+tauri-plugin-log = "2"
+tauri-plugin-updater = "2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+log = "0.4"
+urlencoding = "2.1"
+tokio = { version = "1", features = ["time"] }

@@ -1,0 +1,15 @@
+{
+  "name": "workpulse-hrms-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WorkPulse HRMS Desktop App Wrapper — Powered by Tauri v2",
+  "scripts": {
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.1.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.1.0"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "../gen/schemas/capability.json",
+  "identifier": "default",
+  "description": "Default sandboxed permissions for the WorkPulse HRMS desktop wrapper",
+  "windows": ["main", "splashscreen"],
+  "permissions": [
+    "core:default",
+    "core:app:default",
+    "core:event:default",
+    "core:window:default",
+    "core:webview:default",
+    "core:path:default",
+    "core:tray:default",
+    "core:menu:default",
+    "log:default",
+    "updater:default",
+    "notification:default"
+  ]
+}

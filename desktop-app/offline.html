@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline — WorkPulse HRMS</title>
+  <style>
+    :root {
+      --background: #09090b;
+      --card: #18181b;
+      --foreground: #fafafa;
+      --muted: #a1a1aa;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --border: rgba(255, 255, 255, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--foreground);
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .card {
+      background-color: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      width: 480px;
+      max-width: 90%;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+
+    .icon-container {
+      width: 72px;
+      height: 72px;
+      background-color: rgba(239, 68, 68, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .icon {
+      color: var(--danger);
+      font-size: 32px;
+      font-weight: bold;
+      line-height: 1;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.5px;
+    }
+
+    p.description {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 1.75rem;
+    }
+
+    .btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.2s, transform 0.1s;
+      outline: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn:disabled {
+      background-color: #27272a;
+      color: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-top: 1.5rem;
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--danger);
+    }
+
+    .status-indicator.connecting {
+      background-color: #eab308;
+      animation: blink 1s infinite alternate;
+    }
+
+    .status-indicator.online {
+      background-color: var(--success);
+    }
+
+    .diagnostics {
+      margin-top: 1.5rem;
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--muted);
+      background-color: rgba(0, 0, 0, 0.3);
+      padding: 0.75rem;
+      border-radius: 6px;
+      text-align: left;
+      border: 1px solid var(--border);
+      max-height: 80px;
+      overflow-y: auto;
+    }
+
+    .diagnostics-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: var(--foreground);
+    }
+
+    @keyframes blink {
+      0% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon-container">
+      <span class="icon">⚡</span>
+    </div>
+    
+    <h1>Connection Lost</h1>
+    <p class="description">
+      Unable to reach the WorkPulse HRMS network. The application will automatically attempt to reconnect once your internet connection is restored.
+    </p>
+
+    <button id="retry-btn" class="btn" onclick="manualRetry()">
+      <span id="btn-text">Retry Connection</span>
+    </button>
+
+    <div class="status-badge">
+      <div id="status-dot" class="status-indicator"></div>
+      <span id="status-label">Offline</span>
+    </div>
+
+    <div class="diagnostics">
+      <div class="diagnostics-title">Diagnostic Monitor:</div>
+      <div id="log-output">System initialized offline status.</div>
+    </div>
+  </div>
+
+  <script>
+    // Grab query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetUrl = urlParams.get('target') || 'https://admin.workpulsehrms.com';
+    let checkInterval = null;
+    let autoRetryTimer = null;
+    let isChecking = false;
+
+    const btn = document.getElementById('retry-btn');
+    const btnText = document.getElementById('btn-text');
+    const statusDot = document.getElementById('status-dot');
+    const statusLabel = document.getElementById('status-label');
+    const logOutput = document.getElementById('log-output');
+
+    function log(message) {
+      const entry = document.createElement('div');
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logOutput.appendChild(entry);
+      logOutput.scrollTop = logOutput.scrollHeight;
+    }
+
+    // Ping health check beyond internet connectivity
+    async function checkConnectivity() {
+      if (isChecking) return false;
+      isChecking = true;
+      
+      statusDot.className = 'status-indicator connecting';
+      statusLabel.textContent = 'Verifying network path...';
+      log('Pinging network path...');
+
+      // Basic navigator status check
+      if (!navigator.onLine) {
+        log('Local network adapter reports offline.');
+        isChecking = false;
+        resetOfflineStatus();
+        return false;
+      }
+
+      try {
+        // Fetch to generate a 204 or favicon from target endpoint to ensure DNS and gateway route successfully.
+        // We add cache-busting to bypass browser proxy caching.
+        const cacheBuster = `?cb=${Date.now()}`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout
+
+        const response = await fetch(`${targetUrl}/favicon.ico${cacheBuster}`, {
+          method: 'HEAD',
+          mode: 'no-cors',
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        log('Ping check returned positive gateway connection.');
+        
+        statusDot.className = 'status-indicator online';
+        statusLabel.textContent = 'Online! Redirecting...';
+        
+        setTimeout(() => {
+          window.location.href = targetUrl;
+        }, 1000);
+        
+        return true;
+      } catch (err) {
+        log(`Failed path route to endpoint. Error: ${err.message || 'Timeout'}`);
+        isChecking = false;
+        resetOfflineStatus();
+        return false;
+      }
+    }
+
+    function resetOfflineStatus() {
+      statusDot.className = 'status-indicator';
+      statusLabel.textContent = 'Offline';
+      btn.removeAttribute('disabled');
+      btnText.textContent = 'Retry Connection';
+    }
+
+    function manualRetry() {
+      btn.setAttribute('disabled', 'true');
+      btnText.textContent = 'Checking...';
+      checkConnectivity();
+    }
+
+    // Auto retry loop
+    function startAutoRetry() {
+      log('Auto-recovery monitoring activated (every 10s).');
+      checkInterval = setInterval(() => {
+        if (navigator.onLine) {
+          checkConnectivity();
+        }
+      }, 10000);
+    }
+
+    // Listen to OS browser online trigger
+    window.addEventListener('online', () => {
+      log('Operating system reports network adaptor is connected.');
+      checkConnectivity();
+    });
+
+    window.addEventListener('offline', () => {
+      log('Operating system reports network adaptor disconnected.');
+      resetOfflineStatus();
+    });
+
+    // Start auto recovery loop on load
+    startAutoRetry();
+    // Initial immediate probe
+    checkConnectivity();
+  </script>
+</body>
+</html>

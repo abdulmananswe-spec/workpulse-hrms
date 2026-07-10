@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WorkPulse HRMS</title>
+  <style>
+    :root {
+      --background: #09090b;
+      --foreground: #fafafa;
+      --primary: #3b82f6;
+      --primary-glow: rgba(59, 130, 246, 0.15);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --muted: #a1a1aa;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--foreground);
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .splash-container {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      padding: 2rem;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      position: relative;
+      background: radial-gradient(circle at center, rgba(17, 17, 21, 0.95) 0%, rgba(9, 9, 11, 1) 100%);
+    }
+
+    /* Ambient background glow */
+    .glow-effect {
+      position: absolute;
+      width: 250px;
+      height: 250px;
+      background: var(--primary);
+      filter: blur(100px);
+      opacity: 0.12;
+      border-radius: 50%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .logo-section {
+      position: relative;
+      z-index: 2;
+      margin-bottom: 2rem;
+    }
+
+    .logo-pulse {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 30px var(--primary-glow);
+      position: relative;
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    .logo-icon {
+      color: white;
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .text-section {
+      position: relative;
+      z-index: 2;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(to right, #ffffff, #d4d4d8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .loader-bar {
+      width: 140px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 0 auto;
+    }
+
+    .loader-progress {
+      width: 40%;
+      height: 100%;
+      background: var(--primary);
+      border-radius: 2px;
+      animation: loading-slide 1.5s infinite ease-in-out;
+      box-shadow: 0 0 8px var(--primary);
+    }
+
+    .status-text {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 1rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.8;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 8px 30px var(--primary-glow);
+      }
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 8px 40px rgba(59, 130, 246, 0.35);
+      }
+    }
+
+    @keyframes loading-slide {
+      0% {
+        transform: translateX(-150%);
+      }
+      50% {
+        transform: translateX(150%);
+      }
+      100% {
+        transform: translateX(250%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="splash-container">
+    <div class="glow-effect"></div>
+    
+    <div class="logo-section">
+      <div class="logo-pulse">
+        <span class="logo-icon">WP</span>
+      </div>
+    </div>
+    
+    <div class="text-section">
+      <h1>WorkPulse HRMS</h1>
+      <p class="subtitle">Enterprise Administration System</p>
+      
+      <div class="loader-bar">
+        <div class="loader-progress"></div>
+      </div>
+      
+      <div class="status-text">Connecting securely...</div>
+    </div>
+  </div>
+</body>
+</html>

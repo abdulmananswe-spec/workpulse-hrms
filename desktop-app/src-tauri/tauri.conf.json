@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 2,
+  "productName": "WorkPulse HRMS",
+  "version": "1.0.0",
+  "identifier": "com.workpulse.hrms.admin",
+  "build": {
+    "beforeDevCommand": "",
+    "beforeBuildCommand": "",
+    "frontendDist": "../"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "WorkPulse HRMS - Starting",
+        "label": "splashscreen",
+        "url": "splashscreen.html",
+        "width": 450,
+        "height": 350,
+        "resizable": false,
+        "decorations": false,
+        "alwaysOnTop": true,
+        "center": true,
+        "transparent": true
+      },
+      {
+        "title": "WorkPulse HRMS Admin Panel",
+        "label": "main",
+        "url": "https://admin.workpulsehrms.com",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 1024,
+        "minHeight": 768,
+        "resizable": true,
+        "visible": false,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co wss://*.supabase.in https://*.workpulsehrms.com; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' https: data:; media-src 'self' https: data:;"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "pubkey": "dW51c2VkX3BsYWNlaG9sZGVyX3VwZGF0ZXJfcHVibGljX2tleV9mb3JfYnVpbGRzCg==",
+      "endpoints": [
+        "https://api.github.com/repos/abdulmananswe-spec/workpulse-hrms/releases/latest"
+      ]
+    },
+    "log": {
+      "maxSize": 1048576,
+      "maxFiles": 5
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["msi", "nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "publisher": "WorkPulse Technologies",
+    "copyright": "Copyright © 2026 WorkPulse. All rights reserved.",
+    "shortDescription": "WorkPulse HRMS Desktop App",
+    "longDescription": "WorkPulse HRMS Desktop Client Application.",
+    "windows": {
+      "wix": {
+        "language": "en-US"
+      },
+      "nsis": {
+        "oneClick": false,
+        "allowToChangeInstallationDirectory": true,
+        "createDesktopShortcut": "always",
+        "createStartMenuShortcut": "always",
+        "shortcutName": "WorkPulse HRMS"
+      }
+    }
+  }
+}
