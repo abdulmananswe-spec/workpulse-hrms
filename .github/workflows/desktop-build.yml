@@ -41,7 +41,7 @@ jobs:
         run: echo "APP_ENV=staging" >> $GITHUB_ENV
 
       - name: Set Production Environment URL (Default Release)
-        if: "!contains(github.ref, '-staging')"
+        if: contains(github.ref, '-staging') == false
         shell: bash
         run: echo "APP_ENV=production" >> $GITHUB_ENV
 
@@ -50,11 +50,11 @@ jobs:
         run: npm run tauri build --release
 
       - name: Digitally Sign Executable (Optional if EV PFX secret is provided)
-        if: secrets.SIGNING_CERTIFICATE_PFX != ''
-        shell: pwsh
         env:
           SIGNING_CERTIFICATE_PFX: ${{ secrets.SIGNING_CERTIFICATE_PFX }}
           SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
+        if: env.SIGNING_CERTIFICATE_PFX != ''
+        shell: pwsh
         run: |
           $pfxPath = Join-Path $env:TEMP "cert.pfx"
           [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($env:SIGNING_CERTIFICATE_PFX))
