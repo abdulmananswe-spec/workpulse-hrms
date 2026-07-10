@@ -40,7 +40,6 @@
   },
   "plugins": {
     "updater": {
-      "active": true,
       "pubkey": "dW51c2VkX3BsYWNlaG9sZGVyX3VwZGF0ZXJfcHVibGljX2tleV9mb3JfYnVpbGRzCg==",
       "endpoints": [
         "https://api.github.com/repos/abdulmananswe-spec/workpulse-hrms/releases/latest"
@@ -70,7 +69,7 @@
         "language": "en-US"
       },
       "nsis": {
-        "installMode": "choose",
+        "installMode": "both",
         "startMenuFolder": "WorkPulse HRMS"
       }
     }
