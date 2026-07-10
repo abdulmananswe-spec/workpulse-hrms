@@ -39,11 +39,8 @@ pub fn run() {
             
             // Navigate the main window to the resolved environment endpoint
             if let Some(main_window) = app.get_webview_window("main") {
-                main_window.navigate(tauri::Url::parse(&target_url).map_err(|e| {
-                    let err = format!("Failed to parse target URL: {}", e);
-                    log::error!("{}", err);
-                    tauri::Error::TargetClosed // Standard fallback error variant
-                })?)?;
+                let parsed_url = tauri::Url::parse(&target_url)?;
+                main_window.navigate(parsed_url)?;
             }
             
             Ok(())
