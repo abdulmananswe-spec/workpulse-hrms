@@ -48,12 +48,10 @@ jobs:
 
       - name: Build Tauri Desktop Native Binaries
         working-directory: desktop-app
-        env:
-          APP_ENV: ${{ env.APP_ENV }}
         run: npm run tauri build --release
 
       - name: Digitally Sign Executable (Optional if EV PFX secret is provided)
-        if: ${{ secrets.SIGNING_CERTIFICATE_PFX != '' }}
+        if: secrets.SIGNING_CERTIFICATE_PFX != ''
         shell: pwsh
         env:
           SIGNING_CERTIFICATE_PFX: ${{ secrets.SIGNING_CERTIFICATE_PFX }}
