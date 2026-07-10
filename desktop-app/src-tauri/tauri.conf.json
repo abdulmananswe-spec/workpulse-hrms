@@ -1,5 +1,4 @@
 {
-  "schemaVersion": 2,
   "productName": "WorkPulse HRMS",
   "version": "1.0.0",
   "identifier": "com.workpulse.hrms.admin",
@@ -71,11 +70,8 @@
         "language": "en-US"
       },
       "nsis": {
-        "oneClick": false,
-        "allowToChangeInstallationDirectory": true,
-        "createDesktopShortcut": "always",
-        "createStartMenuShortcut": "always",
-        "shortcutName": "WorkPulse HRMS"
+        "installMode": "choose",
+        "startMenuFolder": "WorkPulse HRMS"
       }
     }
   }
