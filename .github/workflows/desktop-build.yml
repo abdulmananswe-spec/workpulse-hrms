@@ -59,7 +59,7 @@ jobs:
           $pfxPath = Join-Path $env:TEMP "cert.pfx"
           [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($env:SIGNING_CERTIFICATE_PFX))
           # Invoke signtool on compiled executables
-          & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\signtool.exe" sign /f $pfxPath /p $env:SIGNING_CERTIFICATE_PASSWORD /tr http://timestamp.digicert.com /td sha256 /fd sha256 "desktop-app/src-tauri/target/release/workpulse-hrms.exe"
+          & "C:\Program Files (x86)\Windows Kits\10\bin\10.0.19041.0\x64\signtool.exe" sign /f $pfxPath /p $env:SIGNING_CERTIFICATE_PASSWORD /tr http://timestamp.digicert.com /td sha256 /fd sha256 "desktop-app/src-tauri/target/release/workpulse-hrms-desktop.exe"
           Write-Host "App binary signed successfully."
 
       - name: Create Production Release Draft & Upload Installers

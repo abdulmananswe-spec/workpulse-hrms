@@ -20,6 +20,8 @@ pub fn run() {
         .plugin(tauri_plugin_log::Builder::default().build())
         // Register updater plugin to verify release tags and verify installer hashes.
         .plugin(tauri_plugin_updater::Builder::new().build())
+        // Register native notification plugin.
+        .plugin(tauri_plugin_notification::init())
         .setup(|app| {
             // Apply native window events setup (e.g. close intercepts)
             setup::init_window_events(app)?;

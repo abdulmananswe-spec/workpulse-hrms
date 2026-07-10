@@ -69,7 +69,7 @@ pub fn get_app_env() -> Result<AppEnvInfo, String> {
 pub fn trigger_notification(app: tauri::AppHandle, title: String, body: String) -> Result<(), String> {
     log::info!("Triggering native notification: {} - {}", title, body);
     
-    tauri::plugin_notification::NotificationExt::notification(&app)
+    tauri_plugin_notification::NotificationExt::notification(&app)
         .builder()
         .title(title)
         .body(body)
