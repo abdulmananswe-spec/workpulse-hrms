@@ -59,7 +59,8 @@
           }
         }
       ],
-      "./plugins/withAndroidLocalSigning.js"
+      "./plugins/withAndroidLocalSigning.js",
+      "./plugins/withDisableLint.js"
     ],
     "experiments": {
       "tsconfigPaths": true
