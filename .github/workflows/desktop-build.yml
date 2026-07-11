@@ -9,6 +9,8 @@ jobs:
   build-desktop:
     name: Compile & Package MSI/EXE Installers
     runs-on: windows-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4
