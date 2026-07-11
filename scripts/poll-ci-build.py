@@ -6,7 +6,7 @@ import sys
 def main():
     repo = "abdulmananswe-spec/workpulse-hrms"
     # Target commit SHA we want to check is the latest commit we just pushed
-    target_sha = "d8e0a9b2c53b8c5d930fb927368c57d8f4146fd9"
+    target_sha = "30d6ebe0ef961ed476d37382d972940d2065cb1b"
     
     print(f"Monitoring GitHub Actions build for commit: {target_sha[:7]}...")
     
