@@ -34,7 +34,7 @@ pub fn run() {
             let target_url = match env.as_str() {
                 "development" => "http://localhost:3000".to_string(),
                 "staging" => "https://staging-admin.workpulsehrms.com".to_string(),
-                _ => "https://admin.workpulsehrms.com".to_string(),
+                _ => "https://workpulse-hrms.vercel.app".to_string(),
             };
             
             log::info!("WorkPulse HRMS starting in {} environment. Target: {}", env, target_url);

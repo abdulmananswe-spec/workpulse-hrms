@@ -33,7 +33,7 @@ pub fn init_window_events(app: &mut App) -> Result<(), Box<dyn std::error::Error
                         let target_url = match env.as_str() {
                             "development" => "http://localhost:3000".to_string(),
                             "staging" => "https://staging-admin.workpulsehrms.com".to_string(),
-                            _ => "https://admin.workpulsehrms.com".to_string(),
+                            _ => "https://workpulse-hrms.vercel.app".to_string(),
                         };
                         let offline_url = format!("offline.html?target={}", urlencoding::encode(&target_url));
                         let _ = main_window.navigate(tauri::Url::parse(&format!("tauri://localhost/{}", offline_url)).unwrap());

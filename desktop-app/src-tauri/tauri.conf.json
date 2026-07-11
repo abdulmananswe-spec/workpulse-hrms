@@ -25,7 +25,7 @@
       {
         "title": "WorkPulse HRMS Admin Panel",
         "label": "main",
-        "url": "https://admin.workpulsehrms.com",
+        "url": "https://workpulse-hrms.vercel.app",
         "width": 1280,
         "height": 800,
         "minWidth": 1024,
@@ -36,7 +36,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co wss://*.supabase.in https://*.workpulsehrms.com; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' https: data:; media-src 'self' https: data:;"
+      "csp": "default-src 'self'; connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co wss://*.supabase.in https://workpulse-hrms.vercel.app; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' https: data:; media-src 'self' https: data:;"
     }
   },
   "plugins": {
