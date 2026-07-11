@@ -1,6 +1,6 @@
 use tauri::{App, Manager, WindowEvent};
 use tauri::tray::{TrayIconBuilder, TrayIconEvent, MouseButton};
-use tauri::menu::{Menu, MenuItem};
+use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 
 /// Configures window closing intercepts to ensure the app closes to the tray rather than terminating.
 pub fn init_window_events(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
@@ -53,7 +53,7 @@ pub fn init_window_events(app: &mut App) -> Result<(), Box<dyn std::error::Error
 pub fn create_tray(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     let show = MenuItem::with_id(app, "show", "Show WorkPulse HRMS", true, None::<&str>)?;
     let hide = MenuItem::with_id(app, "hide", "Minimize to Tray", true, None::<&str>)?;
-    let separator = MenuItem::separator(app)?;
+    let separator = PredefinedMenuItem::separator(app)?;
     let logs = MenuItem::with_id(app, "logs", "Open Diagnostic Logs", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Quit Application", true, None::<&str>)?;
     

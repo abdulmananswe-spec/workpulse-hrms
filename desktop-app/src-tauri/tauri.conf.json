@@ -1,4 +1,5 @@
 {
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "WorkPulse HRMS",
   "version": "1.0.0",
   "identifier": "com.workpulse.hrms.admin",
@@ -44,10 +45,6 @@
       "endpoints": [
         "https://api.github.com/repos/abdulmananswe-spec/workpulse-hrms/releases/latest"
       ]
-    },
-    "log": {
-      "maxSize": 1048576,
-      "maxFiles": 5
     }
   },
   "bundle": {
@@ -69,7 +66,7 @@
         "language": "en-US"
       },
       "nsis": {
-        "installMode": "both",
+        "installMode": "currentUser",
         "startMenuFolder": "WorkPulse HRMS"
       }
     }

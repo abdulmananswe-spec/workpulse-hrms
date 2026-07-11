@@ -42,3 +42,6 @@ Thumbs.db
 
 # Testing
 coverage/
+
+# Backup folders
+desktop-app-backup/
