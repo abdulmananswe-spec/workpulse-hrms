@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*' # Trigger build only when version tags are pushed (e.g. v1.0.0)
+  workflow_dispatch: # Allow manual trigger from GitHub Actions tab
 
 jobs:
   build-desktop:
